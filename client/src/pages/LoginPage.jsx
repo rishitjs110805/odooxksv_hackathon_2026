@@ -24,13 +24,18 @@ function ForgotPasswordForm({ onBack, addToast }) {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [resetLink, setResetLink] = useState(null);
 
   const handleSubmit = async () => {
     if (!email) { addToast('Validation', 'Enter your email address', 'error'); return; }
     setLoading(true);
     try {
-      await api.forgotPassword(email);
+      const result = await api.forgotPassword(email);
       setSent(true);
+      // If email couldn't be sent, the API returns a reset_link we can use directly
+      if (result.reset_link) {
+        setResetLink(result.reset_link);
+      }
     } catch (e) {
       addToast('Error', e.message, 'error');
     } finally {
@@ -51,11 +56,28 @@ function ForgotPasswordForm({ onBack, addToast }) {
             <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-4">
               <Mail size={20} className="text-emerald-400" />
             </div>
-            <h3 className="text-white font-semibold mb-2">Check your email</h3>
-            <p className="text-slate-400 text-sm">
-              If <span className="text-white">{email}</span> is registered, a reset link has been sent. Check your inbox and spam folder.
-            </p>
-            <p className="text-xs text-slate-500 mt-3">The link expires in 1 hour.</p>
+            {resetLink ? (
+              <>
+                <h3 className="text-white font-semibold mb-2">Reset Link Ready</h3>
+                <p className="text-slate-400 text-sm mb-4">
+                  Email delivery is not configured. Click the button below to reset your password.
+                </p>
+                <a
+                  href={resetLink}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  <KeyRound size={15} /> Reset Password Now
+                </a>
+              </>
+            ) : (
+              <>
+                <h3 className="text-white font-semibold mb-2">Check your email</h3>
+                <p className="text-slate-400 text-sm">
+                  If <span className="text-white">{email}</span> is registered, a reset link has been sent. Check your inbox and spam folder.
+                </p>
+                <p className="text-xs text-slate-500 mt-3">The link expires in 1 hour.</p>
+              </>
+            )}
             <Btn variant="ghost" size="sm" className="mt-4" onClick={onBack}>
               Back to Sign In
             </Btn>
@@ -99,6 +121,7 @@ function ForgotPasswordForm({ onBack, addToast }) {
     </div>
   );
 }
+
 
 function ResetPasswordForm({ token, onSuccess, addToast }) {
   const [form, setForm] = useState({ password: '', confirm: '' });

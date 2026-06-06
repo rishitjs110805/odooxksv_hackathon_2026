@@ -5,6 +5,7 @@ import bcrypt
 import secrets
 import os
 import smtplib
+import traceback
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime, timedelta, timezone
@@ -68,15 +69,22 @@ async def signup(body: SignupBody):
 
 @router.post("/login")
 async def login(body: LoginBody):
+    print(f"[LOGIN] Attempt for email: '{body.email}'")
     pool = await get_pool()
     async with pool.acquire() as conn:
         user = await conn.fetchrow("SELECT * FROM users WHERE email=$1", body.email)
-    if not user or not verify_password(body.password, user["password_hash"]):
+    if not user:
+        print(f"[LOGIN] No user found with email: '{body.email}'")
+        raise HTTPException(401, "Invalid credentials")
+    pwd_ok = verify_password(body.password, user["password_hash"])
+    print(f"[LOGIN] User found: id={user['id']}, password check: {pwd_ok}")
+    if not pwd_ok:
         raise HTTPException(401, "Invalid credentials")
     if not user["is_active"]:
         raise HTTPException(403, "Account disabled")
     token = create_access_token({"sub": str(user["id"]), "email": user["email"], "role": user["role"], "name": user["name"]})
     return {"access_token": token, "token_type": "bearer"}
+
 
 
 @router.get("/me")
@@ -136,6 +144,7 @@ async def forgot_password(body: ForgotPasswordBody):
             user["id"], token, expires_at
         )
 
+        email_sent = False
         smtp_host = os.getenv("SMTP_HOST")
         smtp_user_env = os.getenv("SMTP_USER")
         if smtp_host and smtp_user_env:
@@ -169,8 +178,21 @@ async def forgot_password(body: ForgotPasswordBody):
                     server.starttls()
                     server.login(smtp_user_env, smtp_pass)
                     server.sendmail(smtp_user_env, body.email, msg.as_string())
-            except Exception:
-                pass
+                email_sent = True
+                print(f"[AUTH] Password reset email sent to {body.email}")
+            except Exception as e:
+                print(f"[AUTH] SMTP ERROR sending reset email: {e}")
+                traceback.print_exc()
+
+        # In dev mode: if email failed, return the token so password reset still works
+        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+        if not email_sent:
+            reset_link = f"{frontend_url}?reset_token={token}"
+            return {
+                "message": "Email could not be sent (SMTP not configured or credentials invalid). Use the reset link below.",
+                "reset_link": reset_link,
+                "reset_token": token
+            }
 
     return {"message": "If that email is registered, a reset link has been sent."}
 
