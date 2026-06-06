@@ -20,11 +20,14 @@ class QuotationBody(BaseModel):
     total_amount: float
     delivery_days: int
     notes: Optional[str] = None
+    status: str = 'submitted'
     items: List[QuotationItemBody] = []
 
 
 @router.post("")
 async def submit_quotation(body: QuotationBody, user: dict = Depends(get_current_user)):
+    if body.status not in ("draft", "submitted"):
+        raise HTTPException(400, "Status must be 'draft' or 'submitted'")
     pool = await get_pool()
     async with pool.acquire() as conn:
         rfq = await conn.fetchrow("SELECT * FROM rfqs WHERE id=$1", body.rfq_id)
@@ -32,16 +35,17 @@ async def submit_quotation(body: QuotationBody, user: dict = Depends(get_current
             raise HTTPException(400, "RFQ not open for quotations")
         async with conn.transaction():
             q = await conn.fetchrow(
-                """INSERT INTO quotations (rfq_id, vendor_id, total_amount, delivery_days, notes)
-                   VALUES ($1,$2,$3,$4,$5) RETURNING *""",
-                body.rfq_id, body.vendor_id, body.total_amount, body.delivery_days, body.notes
+                """INSERT INTO quotations (rfq_id, vendor_id, total_amount, delivery_days, notes, status)
+                   VALUES ($1,$2,$3,$4,$5,$6) RETURNING *""",
+                body.rfq_id, body.vendor_id, body.total_amount, body.delivery_days, body.notes, body.status
             )
             for item in body.items:
                 await conn.execute(
                     "INSERT INTO quotation_items (quotation_id, rfq_item_id, unit_price, total_price) VALUES ($1,$2,$3,$4)",
                     q["id"], item.rfq_item_id, item.unit_price, item.total_price
                 )
-            await log_activity(conn, int(user["sub"]), "submitted", "quotation", q["id"], {"rfq_id": body.rfq_id})
+            await log_activity(conn, int(user["sub"]), "submitted", "quotation", q["id"],
+                               {"rfq_id": body.rfq_id, "status": body.status})
     return dict(q)
 
 
@@ -52,7 +56,7 @@ async def list_quotations_for_rfq(rfq_id: int, user: dict = Depends(get_current_
         rows = await conn.fetch(
             """SELECT q.*, v.name as vendor_name, v.email as vendor_email, v.category as vendor_category
                FROM quotations q JOIN vendors v ON v.id=q.vendor_id
-               WHERE q.rfq_id=$1 ORDER BY q.total_amount ASC""",
+               WHERE q.rfq_id=$1 AND q.status != 'draft' ORDER BY q.total_amount ASC""",
             rfq_id
         )
     return [dict(r) for r in rows]
@@ -75,7 +79,7 @@ async def update_quotation_status(
     status: str,
     user: dict = Depends(require_roles("admin", "procurement_officer", "manager"))
 ):
-    if status not in ("submitted", "under_review", "accepted", "rejected"):
+    if status not in ("draft", "submitted", "under_review", "accepted", "rejected"):
         raise HTTPException(400, "Invalid status")
     pool = await get_pool()
     async with pool.acquire() as conn:
@@ -96,7 +100,7 @@ async def compare_quotations(rfq_id: int, user: dict = Depends(get_current_user)
         quotations = await conn.fetch(
             """SELECT q.*, v.name as vendor_name, v.email as vendor_email
                FROM quotations q JOIN vendors v ON v.id=q.vendor_id
-               WHERE q.rfq_id=$1 ORDER BY q.total_amount ASC""",
+               WHERE q.rfq_id=$1 AND q.status != 'draft' ORDER BY q.total_amount ASC""",
             rfq_id
         )
         result = []
