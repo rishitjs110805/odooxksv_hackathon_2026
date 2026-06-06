@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Check, Clock, X } from 'lucide-react';
+import { Check, Clock, X, AlertTriangle, FileSearch, GitCompare, ShoppingCart, BarChart3 } from 'lucide-react';
 import { api } from '../services/api';
 import { PageLoader, SectionHeader, Btn, Empty, fmt, fmtDate } from '../components/ui';
 
@@ -41,7 +41,7 @@ function ApprovalTimeline({ status }) {
   );
 }
 
-export default function Approvals({ user, addToast }) {
+export default function Approvals({ user, addToast, setActiveView }) {
   const [approvals, setApprovals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
@@ -111,10 +111,44 @@ export default function Approvals({ user, addToast }) {
   }
 
   const apr = selected || approvals[0];
+  const pending = approvals.filter(a => a.status === 'pending');
+  const approved = approvals.filter(a => a.status === 'approved');
+  const rejected = approvals.filter(a => a.status === 'rejected');
+  const managerChecklist = [
+    'Confirm the quotation matches the RFQ scope and quantity.',
+    'Compare total price against competing vendor quotations.',
+    'Check delivery timeline against procurement deadline.',
+    'Add remarks for audit trail before approving or rejecting.',
+  ];
+  const selectedPendingIndex = pending.findIndex(a => a.id === apr?.id);
+  const nextPending = selectedPendingIndex >= 0 ? pending[selectedPendingIndex + 1] : pending[0];
 
   return (
     <div className="space-y-5">
       <SectionHeader title="Approvals" subtitle="Manage quotation approval workflow" />
+
+      {isManager && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          {[
+            ['Pending Decisions', pending.length, Clock, 'text-amber-400 bg-amber-500/10'],
+            ['Approved Quotes', approved.length, Check, 'text-emerald-400 bg-emerald-500/10'],
+            ['Rejected Quotes', rejected.length, X, 'text-red-400 bg-red-500/10'],
+            ['Total Reviews', approvals.length, FileSearch, 'text-blue-400 bg-blue-500/10'],
+          ].map(([label, value, Icon, tone]) => (
+            <div key={label} className="bg-slate-800 border border-slate-700/50 rounded-xl p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs text-slate-500">{label}</p>
+                  <p className="text-2xl font-bold text-white mt-1">{value}</p>
+                </div>
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${tone}`}>
+                  <Icon size={17} />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {approvals.length > 1 && (
         <div className="bg-slate-800 border border-slate-700/50 rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap">
@@ -199,6 +233,12 @@ export default function Approvals({ user, addToast }) {
 
               {isManager && apr.status === 'pending' && (
                 <div className="space-y-3 pt-3 border-t border-slate-700/50">
+                  <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2.5 flex gap-2">
+                    <AlertTriangle size={15} className="text-amber-400 shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-100/80">
+                      Manager decision required. Verify vendor fit, pricing, delivery risk, and compliance notes before action.
+                    </p>
+                  </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-400 mb-1.5">Approval Remarks</label>
                     <textarea

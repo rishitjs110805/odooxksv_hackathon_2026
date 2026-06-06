@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
-import { FileText, Clock, ShoppingCart, AlertCircle, Plus, Building2, Receipt, TrendingUp } from 'lucide-react';
+import {
+  FileText, Clock, ShoppingCart, AlertCircle, Plus, Building2, Receipt,
+  TrendingUp, ShieldCheck, GitCompare, ClipboardCheck, BarChart3
+} from 'lucide-react';
 import { api } from '../services/api';
 import { PageLoader, StatCard, SectionHeader, StatusBadge, Btn, fmt } from '../components/ui';
 
@@ -55,6 +58,43 @@ export default function Dashboard({ user, setActiveView, addToast }) {
 
   const s = data?.stats || {};
   const months = (spending?.monthly_trends || []).slice(0, 6).reverse();
+  const isApprover = ['admin', 'manager'].includes(user?.role);
+  const managerTasks = [
+    {
+      title: 'Review pending approvals',
+      detail: `${s.pending_approvals ?? 0} procurement request${(s.pending_approvals ?? 0) === 1 ? '' : 's'} need a decision`,
+      icon: ShieldCheck,
+      view: 'approvals',
+      tone: 'amber',
+    },
+    {
+      title: 'Compare vendor quotations',
+      detail: 'Check price, delivery timeline, and vendor reliability before approving',
+      icon: GitCompare,
+      view: 'quotations',
+      tone: 'blue',
+    },
+    {
+      title: 'Monitor approved POs',
+      detail: 'Track purchase orders created from approved quotations',
+      icon: ClipboardCheck,
+      view: 'purchase-orders',
+      tone: 'emerald',
+    },
+    {
+      title: 'Review procurement analytics',
+      detail: 'Use spend and vendor performance reports for oversight',
+      icon: BarChart3,
+      view: 'reports',
+      tone: 'purple',
+    },
+  ];
+  const taskTones = {
+    amber: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+    blue: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
+    emerald: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+    purple: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
+  };
 
   return (
     <div className="space-y-6">
@@ -69,6 +109,35 @@ export default function Dashboard({ user, setActiveView, addToast }) {
         <StatCard label="POs This Month"    value={fmt(s.pos_this_month_amount)} icon={ShoppingCart} color="emerald" />
         <StatCard label="Pending Invoices"  value={s.pending_invoices ?? 0}      icon={AlertCircle}  color="red"     />
       </div>
+
+      {isApprover && (
+        <div className="bg-slate-800 border border-slate-700/50 rounded-xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-700/50 flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <h3 className="text-sm font-semibold text-white">Manager Action Center</h3>
+              <p className="text-xs text-slate-500 mt-0.5">Approval, risk review, and procurement oversight tasks</p>
+            </div>
+            <Btn variant="primary" size="sm" onClick={() => setActiveView('approvals')}>
+              <ShieldCheck size={14} /> Open approvals
+            </Btn>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-slate-700/40">
+            {managerTasks.map(({ title, detail, icon: Icon, view, tone }) => (
+              <button
+                key={title}
+                onClick={() => setActiveView(view)}
+                className="text-left p-5 hover:bg-slate-700/20 transition-colors"
+              >
+                <div className={`w-9 h-9 rounded-lg border flex items-center justify-center mb-3 ${taskTones[tone]}`}>
+                  <Icon size={17} />
+                </div>
+                <p className="text-sm font-medium text-white">{title}</p>
+                <p className="text-xs text-slate-500 mt-1 leading-relaxed">{detail}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
         <div className="lg:col-span-3 bg-slate-800 border border-slate-700/50 rounded-xl overflow-hidden">
@@ -124,12 +193,26 @@ export default function Dashboard({ user, setActiveView, addToast }) {
         <div>
           <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-3">Quick Actions</p>
           <div className="flex flex-wrap gap-2">
-            <Btn variant="primary" onClick={() => setActiveView('rfqs')}>
-              <Plus size={14} /> New RFQ
-            </Btn>
-            <Btn variant="secondary" onClick={() => setActiveView('vendors')}>
-              <Building2 size={14} /> Add Vendor
-            </Btn>
+            {!isApprover && (
+              <>
+                <Btn variant="primary" onClick={() => setActiveView('rfqs')}>
+                  <Plus size={14} /> New RFQ
+                </Btn>
+                <Btn variant="secondary" onClick={() => setActiveView('vendors')}>
+                  <Building2 size={14} /> Add Vendor
+                </Btn>
+              </>
+            )}
+            {isApprover && (
+              <>
+                <Btn variant="primary" onClick={() => setActiveView('approvals')}>
+                  <ShieldCheck size={14} /> Approve Requests
+                </Btn>
+                <Btn variant="secondary" onClick={() => setActiveView('reports')}>
+                  <BarChart3 size={14} /> View Reports
+                </Btn>
+              </>
+            )}
             <Btn variant="secondary" onClick={() => setActiveView('invoices')}>
               <Receipt size={14} /> View Invoices
             </Btn>
