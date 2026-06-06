@@ -1,17 +1,9 @@
 import { useEffect, useState } from 'react';
-import { GitCompare, Plus, X } from 'lucide-react';
+import { GitCompare, Plus, ArrowLeft, ArrowUp } from 'lucide-react';
 import { api } from '../services/api';
 import { PageLoader, SectionHeader, StatusBadge, Btn, Textarea, Empty, fmt, fmtDate } from '../components/ui';
 
 const TABS = ['Submit Quotation', 'Compare Quotes'];
-
-const CRITERIA = [
-  { label: 'Grand Total',     value: q => fmt(q.total_amount), highlight: true },
-  { label: 'GST %',           value: () => '18%' },
-  { label: 'Delivery (days)', value: q => `${q.delivery_days} days` },
-  { label: 'Rating',          value: () => '—' },
-  { label: 'Payment Terms',   value: q => q.notes || '—' },
-];
 
 export default function Quotations({ user, addToast }) {
   const [rfqs, setRfqs] = useState([]);
@@ -28,6 +20,7 @@ export default function Quotations({ user, addToast }) {
 
   const [activeTab, setActiveTab] = useState(isVendor ? 'Submit Quotation' : 'Compare Quotes');
 
+  // Submit form state
   const [form, setForm] = useState({
     vendor_id: '',
     delivery_days: '',
@@ -41,7 +34,6 @@ export default function Quotations({ user, addToast }) {
       setRfqs(data);
       if (data.length > 0) setSelectedRFQ(String(data[0].id));
     }).catch(e => addToast('Error', e.message, 'error'));
-
     if (isVendor) {
       api.me().then(me =>
         api.getVendors({}).then(list => {
@@ -83,12 +75,16 @@ export default function Quotations({ user, addToast }) {
   const setItemPrice = (i, price) => {
     setForm(f => ({
       ...f,
-      items: f.items.map((it, idx) => idx !== i ? it : { ...it, unit_price: price }),
+      items: f.items.map((it, idx) => idx !== i ? it : {
+        ...it,
+        unit_price: price,
+      }),
     }));
   };
 
-  const subtotal = form.items.reduce((s, it) =>
-    s + (Number(it.unit_price) || 0) * (Number(it.quantity) || 0), 0);
+  const subtotal = form.items.reduce((s, it) => {
+    return s + (Number(it.unit_price) || 0) * (Number(it.quantity) || 0);
+  }, 0);
   const taxAmount = Math.round(subtotal * (Number(form.tax_rate) || 0) / 100);
   const grandTotal = subtotal + taxAmount;
 
@@ -137,6 +133,16 @@ export default function Quotations({ user, addToast }) {
     }
   };
 
+  const handleStatusChange = async (quotation, status) => {
+    try {
+      await api.updateQuotationStatus(quotation.id, status);
+      addToast('Updated', `Quotation → ${status}`, 'success');
+      api.compareQuotations(selectedRFQ).then(setQuotations).catch(() => {});
+    } catch (e) {
+      addToast('Error', e.message, 'error');
+    }
+  };
+
   const handleInitiateApproval = async (quotation) => {
     try {
       await api.initiateApproval(quotation.id);
@@ -147,10 +153,9 @@ export default function Quotations({ user, addToast }) {
     }
   };
 
-  const lowestPrice = quotations.length
-    ? Math.min(...quotations.map(q => Number(q.total_amount)))
-    : null;
+  const lowestPrice = quotations.length ? Math.min(...quotations.map(q => Number(q.total_amount))) : null;
 
+  // ─── RFQ Selector (shared) ──────────────────────────────────────────────────
   const RFQSelector = () => (
     <div className="bg-slate-800 border border-slate-700/50 rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap">
       <label className="text-xs font-medium text-slate-400 shrink-0">RFQ:</label>
@@ -165,11 +170,11 @@ export default function Quotations({ user, addToast }) {
     </div>
   );
 
-  // ─── Submit Quotation Form ──────────────────────────────────────────────────
+  // ─── Submit Quotation Form (image 6 layout) ─────────────────────────────────
   const SubmitForm = () => (
     <div className="space-y-5">
       <div>
-        <h2 className="text-lg font-semibold text-white">Submit Quotation</h2>
+        <h2 className="text-lg font-semibold text-white">Submit Quotations</h2>
         {rfqDetail && (
           <p className="text-sm text-slate-400 mt-1">
             RFQ: <span className="text-slate-200">{rfqDetail.title}</span>
@@ -184,16 +189,18 @@ export default function Quotations({ user, addToast }) {
         <Empty icon={GitCompare} message="Select an RFQ to submit a quotation" />
       ) : loadingQ ? <PageLoader /> : (
         <>
+          {/* RFQ Summary */}
           {rfqDetail?.items?.length > 0 && (
             <div className="bg-slate-800 border border-slate-700/50 rounded-xl px-4 py-3">
               <p className="text-xs font-medium text-slate-500 mb-1">RFQ Summary</p>
               <p className="text-sm text-slate-300">
                 {rfqDetail.items.map(it => `${it.product_name} × ${it.quantity}${it.unit ? ' ' + it.unit : ''}`).join(', ')}
-                {rfqDetail.category && <span className="text-slate-500"> — {rfqDetail.category}</span>}
+                {rfqDetail.category && <span className="text-slate-500"> — category {rfqDetail.category}</span>}
               </p>
             </div>
           )}
 
+          {/* Vendor selector for non-vendors */}
           {!isVendor && vendors.length > 0 && (
             <div>
               <label className="block text-xs font-medium text-slate-400 mb-1.5">Vendor *</label>
@@ -208,6 +215,7 @@ export default function Quotations({ user, addToast }) {
             </div>
           )}
 
+          {/* Your Quotation Table */}
           {form.items.length > 0 && (
             <div className="bg-slate-800 border border-slate-700/50 rounded-xl overflow-hidden">
               <div className="px-4 py-3 border-b border-slate-700/50">
@@ -251,6 +259,7 @@ export default function Quotations({ user, addToast }) {
             </div>
           )}
 
+          {/* Tax, Notes, Totals */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div className="space-y-4">
               <div>
@@ -281,6 +290,7 @@ export default function Quotations({ user, addToast }) {
               />
             </div>
 
+            {/* Totals */}
             <div className="bg-slate-800 border border-slate-700/50 rounded-xl p-5 self-start">
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
@@ -299,6 +309,7 @@ export default function Quotations({ user, addToast }) {
             </div>
           </div>
 
+          {/* Submit Buttons */}
           <div className="flex gap-3">
             <Btn variant="primary" onClick={() => handleSubmit(false)} disabled={saving}>
               {saving ? 'Submitting…' : 'Submit Quotation'}
@@ -312,7 +323,7 @@ export default function Quotations({ user, addToast }) {
     </div>
   );
 
-  // ─── Compare Quotes View (image 7: column-based card comparison) ────────────
+  // ─── Compare Quotes View ────────────────────────────────────────────────────
   const CompareView = () => (
     <div className="space-y-5">
       <RFQSelector />
@@ -322,88 +333,60 @@ export default function Quotations({ user, addToast }) {
       ) : loadingQ ? <PageLoader /> : quotations.length === 0 ? (
         <Empty icon={GitCompare} message="No quotations received for this RFQ" />
       ) : (
-        <div className="space-y-3">
-          <div className="bg-slate-800 border border-slate-700/50 rounded-xl overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-slate-700/50">
-                    <th className="text-left text-xs font-medium text-slate-500 px-5 py-3.5 uppercase tracking-wide bg-slate-800/80 w-36">
-                      Criteria
-                    </th>
-                    {quotations.map(q => {
-                      const isLowest = Number(q.total_amount) === lowestPrice;
-                      return (
-                        <th key={q.id} className={`text-left px-5 py-3.5 ${isLowest ? 'bg-emerald-500/5' : 'bg-slate-800/80'}`}>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-sm font-semibold text-white">{q.vendor_name}</span>
-                            {isLowest && (
-                              <span className="text-xs px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded font-medium">
-                                Lowest
-                              </span>
+        <div className="bg-slate-800 border border-slate-700/50 rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-700/50 bg-slate-800/80">
+                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-400 uppercase">Vendor</th>
+                  <th className="text-right px-4 py-3 text-xs font-medium text-slate-400 uppercase">Amount</th>
+                  <th className="text-right px-4 py-3 text-xs font-medium text-slate-400 uppercase">Delivery</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-400 uppercase">Notes</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-400 uppercase">Status</th>
+                  {canManage && <th className="text-left px-4 py-3 text-xs font-medium text-slate-400 uppercase">Actions</th>}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-700/30">
+                {quotations.map(q => {
+                  const isLowest = Number(q.total_amount) === lowestPrice;
+                  return (
+                    <tr key={q.id} className={`hover:bg-slate-700/20 transition-colors ${isLowest ? 'bg-emerald-500/5' : ''}`}>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-white">{q.vendor_name}</span>
+                          {isLowest && (
+                            <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-emerald-500/15 text-emerald-400 rounded text-xs font-medium">
+                              <ArrowUp size={10} /> Best Price
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span className={`text-sm font-semibold ${isLowest ? 'text-emerald-400' : 'text-white'}`}>{fmt(q.total_amount)}</span>
+                      </td>
+                      <td className="px-4 py-3 text-right text-sm text-slate-300">{q.delivery_days} days</td>
+                      <td className="px-4 py-3 text-sm text-slate-400 max-w-xs truncate">{q.notes || '—'}</td>
+                      <td className="px-4 py-3"><StatusBadge status={q.status} /></td>
+                      {canManage && (
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-1.5">
+                            {q.status === 'submitted' && (
+                              <Btn variant="secondary" size="sm" onClick={() => handleStatusChange(q, 'under_review')}>Review</Btn>
+                            )}
+                            {q.status === 'under_review' && (
+                              <Btn variant="primary" size="sm" onClick={() => handleInitiateApproval(q)}>Send for Approval</Btn>
+                            )}
+                            {q.status === 'submitted' && (
+                              <Btn variant="danger" size="sm" onClick={() => handleStatusChange(q, 'rejected')}>Reject</Btn>
                             )}
                           </div>
-                        </th>
-                      );
-                    })}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-700/20">
-                  {CRITERIA.map((crit, ri) => (
-                    <tr key={ri} className={ri % 2 === 0 ? 'bg-slate-800/20' : ''}>
-                      <td className="px-5 py-3.5 text-xs font-medium text-slate-500">{crit.label}</td>
-                      {quotations.map(q => {
-                        const isLowest = Number(q.total_amount) === lowestPrice;
-                        return (
-                          <td key={q.id} className={`px-5 py-3.5 ${isLowest ? 'bg-emerald-500/5' : ''}`}>
-                            <span className={`text-sm font-medium ${
-                              crit.highlight && isLowest ? 'text-emerald-400' : 'text-white'
-                            }`}>
-                              {crit.value(q)}
-                            </span>
-                          </td>
-                        );
-                      })}
+                        </td>
+                      )}
                     </tr>
-                  ))}
-                  {/* Action row */}
-                  {canManage && (
-                    <tr>
-                      <td className="px-5 py-4" />
-                      {quotations.map(q => {
-                        const isLowest = Number(q.total_amount) === lowestPrice;
-                        const canSelect = ['submitted', 'under_review'].includes(q.status);
-                        return (
-                          <td key={q.id} className={`px-5 py-4 ${isLowest ? 'bg-emerald-500/5' : ''}`}>
-                            {canSelect ? (
-                              isLowest ? (
-                                <button
-                                  onClick={() => handleInitiateApproval(q)}
-                                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-colors"
-                                >
-                                  Select & Approve
-                                </button>
-                              ) : (
-                                <Btn variant="secondary" size="sm" onClick={() => handleInitiateApproval(q)}>
-                                  Select
-                                </Btn>
-                              )
-                            ) : (
-                              <StatusBadge status={q.status} />
-                            )}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-            <div className="px-5 py-3 border-t border-slate-700/30 bg-slate-800/30">
-              <p className="text-xs text-emerald-600/80">
-                Green = lowest price. Selecting a vendor initiates the approval workflow.
-              </p>
-            </div>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
@@ -420,6 +403,7 @@ export default function Quotations({ user, addToast }) {
         )}
       </SectionHeader>
 
+      {/* Tabs — hidden for vendor (always shows submit form) */}
       {!isVendor && (
         <div className="flex gap-1 bg-slate-800 border border-slate-700/50 rounded-lg p-1 self-start w-fit">
           {TABS.map(t => (

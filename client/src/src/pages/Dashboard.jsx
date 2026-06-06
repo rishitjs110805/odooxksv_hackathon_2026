@@ -63,6 +63,7 @@ export default function Dashboard({ user, setActiveView, addToast }) {
         subtitle="Today's procurement overview"
       />
 
+      {/* 4 Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Active RFQs"       value={s.active_rfqs ?? 0}           icon={FileText}     color="blue"    />
         <StatCard label="Pending Approvals" value={s.pending_approvals ?? 0}     icon={Clock}        color="amber"   />
@@ -71,6 +72,7 @@ export default function Dashboard({ user, setActiveView, addToast }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
+        {/* Recent Purchase Orders Table — 3 cols */}
         <div className="lg:col-span-3 bg-slate-800 border border-slate-700/50 rounded-xl overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-700/50 flex items-center justify-between">
             <h3 className="text-sm font-semibold text-white">Recent Purchase Orders</h3>
@@ -109,6 +111,7 @@ export default function Dashboard({ user, setActiveView, addToast }) {
           )}
         </div>
 
+        {/* Spending Trends Chart — 2 cols */}
         <div className="lg:col-span-2 bg-slate-800 border border-slate-700/50 rounded-xl">
           <div className="px-5 py-4 border-b border-slate-700/50 flex items-center justify-between">
             <h3 className="text-sm font-semibold text-white">Spending Trends</h3>
@@ -120,6 +123,7 @@ export default function Dashboard({ user, setActiveView, addToast }) {
         </div>
       </div>
 
+      {/* Quick Actions */}
       {user?.role !== 'vendor' && (
         <div>
           <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-3">Quick Actions</p>

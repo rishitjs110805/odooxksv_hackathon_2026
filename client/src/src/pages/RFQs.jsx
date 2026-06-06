@@ -144,6 +144,7 @@ export default function RFQs({ user, addToast }) {
   const selectedVendors = vendors.filter(v => form.vendor_ids.includes(v.id));
   const unselectedVendors = vendors.filter(v => !form.vendor_ids.includes(v.id));
 
+  // ─── Create Form (full panel) ───────────────────────────────────────────────
   if (showCreate) {
     return (
       <div className="space-y-6">
@@ -160,6 +161,7 @@ export default function RFQs({ user, addToast }) {
         <StepIndicator step={1} />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left: RFQ Details */}
           <div className="space-y-4">
             <div className="bg-slate-800 border border-slate-700/50 rounded-xl p-5 space-y-4">
               <h3 className="text-sm font-semibold text-slate-200 mb-3">RFQ Details</h3>
@@ -178,6 +180,7 @@ export default function RFQs({ user, addToast }) {
                 placeholder="Describe the requirements in detail…" rows={4} />
             </div>
 
+            {/* Action Buttons */}
             <div className="flex flex-col gap-2">
               <Btn variant="primary" onClick={() => handleCreate(false)} disabled={saving} className="w-full justify-center">
                 {saving ? 'Sending…' : 'Save & Send to Vendors'}
@@ -188,7 +191,9 @@ export default function RFQs({ user, addToast }) {
             </div>
           </div>
 
+          {/* Right: Items + Vendors + Attachments */}
           <div className="space-y-4">
+            {/* Line Items */}
             <div className="bg-slate-800 border border-slate-700/50 rounded-xl p-5">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-slate-200">Line Items</h3>
@@ -240,9 +245,11 @@ export default function RFQs({ user, addToast }) {
               )}
             </div>
 
+            {/* Assign Vendors */}
             {vendors.length > 0 && (
               <div className="bg-slate-800 border border-slate-700/50 rounded-xl p-5">
                 <h3 className="text-sm font-semibold text-slate-200 mb-3">Assign Vendors</h3>
+                {/* Selected vendors as removable tags */}
                 <div className="flex flex-wrap gap-2 mb-3 min-h-[32px]">
                   {selectedVendors.map(v => (
                     <span key={v.id} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 rounded-lg text-xs">
@@ -256,6 +263,7 @@ export default function RFQs({ user, addToast }) {
                     <span className="text-xs text-slate-500">No vendors selected</span>
                   )}
                 </div>
+                {/* Add vendor dropdown */}
                 {unselectedVendors.length > 0 && (
                   <select
                     value=""
@@ -269,6 +277,7 @@ export default function RFQs({ user, addToast }) {
               </div>
             )}
 
+            {/* Attachments (UI only) */}
             <div className="bg-slate-800 border border-slate-700/50 rounded-xl p-5">
               <h3 className="text-sm font-semibold text-slate-200 mb-3">Attachments</h3>
               <div className="border-2 border-dashed border-slate-700 rounded-lg p-6 text-center">
@@ -281,6 +290,7 @@ export default function RFQs({ user, addToast }) {
     );
   }
 
+  // ─── RFQ List ────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-5">
       <SectionHeader title="RFQs" subtitle="Request for Quotations">
@@ -289,6 +299,7 @@ export default function RFQs({ user, addToast }) {
         )}
       </SectionHeader>
 
+      {/* Filter Tabs */}
       <div className="flex gap-2 flex-wrap">
         {['', 'open', 'draft', 'closed', 'cancelled'].map(s => (
           <button key={s} onClick={() => setFilterStatus(s)}

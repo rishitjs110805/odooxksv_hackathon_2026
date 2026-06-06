@@ -1,17 +1,172 @@
 import { useEffect, useState } from 'react';
-import { Receipt, ChevronDown, ChevronUp, Printer, Mail } from 'lucide-react';
+import { FileText, Download, Printer, ArrowLeft } from 'lucide-react';
 import { api } from '../services/api';
-import { PageLoader, SectionHeader, StatusBadge, Btn, Modal, Input, Empty, fmt, fmtDate } from '../components/ui';
+import { PageLoader, SectionHeader, StatusBadge, Btn, Empty, fmt, fmtDate } from '../components/ui';
+
+function InvoiceDocument({ invoice, onClose, onMarkPaid, onSendEmail, canManage }) {
+  const cgst = (Number(invoice.tax_amount) || 0) / 2;
+  const sgst = cgst;
+
+  const dueDate = invoice.created_at
+    ? new Date(new Date(invoice.created_at).getTime() + 30 * 24 * 60 * 60 * 1000).toISOString()
+    : null;
+
+  const handlePrint = () => window.print();
+
+  return (
+    <div className="space-y-4">
+      {/* Top action bar */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <button
+          onClick={onClose}
+          className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-sm"
+        >
+          <ArrowLeft size={16} /> Back to Invoices
+        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          {canManage && invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
+            <Btn variant="primary" size="sm" onClick={onMarkPaid}>Mark as Paid</Btn>
+          )}
+          {canManage && (
+            <Btn variant="secondary" size="sm" onClick={onSendEmail}>Send Email</Btn>
+          )}
+          <Btn variant="secondary" size="sm" onClick={handlePrint}>
+            <Printer size={14} /> Print
+          </Btn>
+          <Btn variant="secondary" size="sm" onClick={handlePrint}>
+            <Download size={14} /> Download PDF
+          </Btn>
+        </div>
+      </div>
+
+      {/* Document */}
+      <div className="bg-slate-800 border border-slate-700/50 rounded-xl overflow-hidden">
+        {/* Header */}
+        <div className="px-8 py-6 border-b border-slate-700/50">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-lg shrink-0">
+                  V
+                </div>
+                <span className="text-lg font-bold text-white">VendorBridge</span>
+              </div>
+              <p className="text-sm text-slate-400">Purchase Order &amp; Invoice</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xl font-bold text-white mb-1">{invoice.invoice_number}</p>
+              <StatusBadge status={invoice.status} />
+            </div>
+          </div>
+        </div>
+
+        {/* Bill To / Vendor */}
+        <div className="grid grid-cols-2 gap-6 px-8 py-6 border-b border-slate-700/50">
+          <div>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2.5">Bill To</p>
+            <p className="text-sm font-semibold text-white">Your Organization</p>
+            <p className="text-xs text-slate-400 mt-1">Procurement Department</p>
+            <p className="text-xs text-slate-400">VendorBridge ERP Platform</p>
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2.5">Vendor</p>
+            <p className="text-sm font-semibold text-white">{invoice.vendor_name}</p>
+            {invoice.vendor_email && (
+              <p className="text-xs text-slate-400 mt-1">{invoice.vendor_email}</p>
+            )}
+            {invoice.gst_number && (
+              <p className="text-xs text-slate-400">GSTIN: {invoice.gst_number}</p>
+            )}
+            {(invoice.address || invoice.city) && (
+              <p className="text-xs text-slate-400">
+                {[invoice.address, invoice.city, invoice.state, invoice.pincode].filter(Boolean).join(', ')}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* PO Details row */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 px-8 py-4 border-b border-slate-700/50 bg-slate-900/25">
+          {[
+            ['PO Number',    invoice.po_number],
+            ['Invoice Date', fmtDate(invoice.created_at)],
+            ['PO Date',      fmtDate(invoice.created_at)],
+            ['Due Date',     dueDate ? fmtDate(dueDate) : '—'],
+          ].map(([label, val]) => (
+            <div key={label}>
+              <p className="text-xs text-slate-500 mb-0.5">{label}</p>
+              <p className="text-sm font-medium text-white">{val}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Line Items */}
+        <div className="px-8 py-5 border-b border-slate-700/50">
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Line Items</p>
+          <div className="bg-slate-900/40 rounded-lg overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-700/50">
+                  <th className="text-left text-xs font-medium text-slate-500 px-4 py-2.5 uppercase">Item</th>
+                  <th className="text-right text-xs font-medium text-slate-500 px-4 py-2.5 uppercase">Qty</th>
+                  <th className="text-right text-xs font-medium text-slate-500 px-4 py-2.5 uppercase">Unit Price</th>
+                  <th className="text-right text-xs font-medium text-slate-500 px-4 py-2.5 uppercase">Total</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-700/20">
+                {invoice.items?.length > 0 ? invoice.items.map((item, i) => (
+                  <tr key={i}>
+                    <td className="px-4 py-3 text-sm text-white">{item.product_name}</td>
+                    <td className="px-4 py-3 text-sm text-right text-slate-300">
+                      {item.quantity}{item.unit ? ` ${item.unit}` : ''}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-right text-slate-300">{fmt(item.unit_price)}</td>
+                    <td className="px-4 py-3 text-sm text-right font-medium text-white">{fmt(item.total_price)}</td>
+                  </tr>
+                )) : (
+                  <tr>
+                    <td colSpan={4} className="px-4 py-6 text-center text-sm text-slate-500">
+                      No line item details available
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Totals */}
+        <div className="px-8 py-6 flex justify-end">
+          <div className="w-full max-w-xs space-y-2.5">
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-400">Subtotal</span>
+              <span className="text-white">{fmt(invoice.subtotal)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-400">CGST (9%)</span>
+              <span className="text-white">{fmt(cgst)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-400">SGST (9%)</span>
+              <span className="text-white">{fmt(sgst)}</span>
+            </div>
+            <div className="border-t border-slate-600 pt-3 flex justify-between items-baseline">
+              <span className="text-sm font-semibold text-white">Grand Total</span>
+              <span className="text-xl font-bold text-indigo-400">{fmt(invoice.total)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Invoices({ user, addToast }) {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState(null);
-  const [expandedDetail, setExpandedDetail] = useState(null);
-  const [printModal, setPrintModal] = useState(null);
-  const [emailModal, setEmailModal] = useState(null);
-  const [emailRecipient, setEmailRecipient] = useState('');
-  const [sendingEmail, setSendingEmail] = useState(false);
+  const [selected, setSelected] = useState(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [processing, setProcessing] = useState(false);
 
   const canManage = ['admin', 'procurement_officer'].includes(user?.role);
 
@@ -25,266 +180,99 @@ export default function Invoices({ user, addToast }) {
 
   useEffect(() => { load(); }, []);
 
-  const toggleExpand = async (inv) => {
-    if (expanded === inv.id) { setExpanded(null); setExpandedDetail(null); return; }
+  const handleView = async (inv) => {
+    setLoadingDetail(true);
     try {
       const detail = await api.getInvoice(inv.id);
-      setExpandedDetail(detail);
-      setExpanded(inv.id);
+      setSelected(detail);
     } catch (e) {
       addToast('Error', e.message, 'error');
+    } finally {
+      setLoadingDetail(false);
     }
   };
 
-  const handleStatusChange = async (inv, status) => {
+  const handleMarkPaid = async () => {
+    if (!selected) return;
+    setProcessing(true);
     try {
-      await api.updateInvoiceStatus(inv.id, status);
-      addToast('Updated', `Invoice ${status}`, 'success');
-      load();
-    } catch (e) {
-      addToast('Error', e.message, 'error');
-    }
-  };
-
-  const openPrint = async (inv) => {
-    try {
-      const detail = await api.getInvoice(inv.id);
-      setPrintModal(detail);
-    } catch (e) {
-      addToast('Error', e.message, 'error');
-    }
-  };
-
-  const handlePrint = () => {
-    window.print();
-    addToast('Print', 'Print dialog opened', 'info');
-  };
-
-  const openEmailModal = async (inv) => {
-    try {
-      const detail = await api.getInvoice(inv.id);
-      setEmailRecipient(detail.vendor_email || '');
-      setEmailModal(detail);
-    } catch (e) {
-      addToast('Error', e.message, 'error');
-    }
-  };
-
-  const handleSendEmail = async () => {
-    if (!emailRecipient) { addToast('Validation', 'Enter recipient email', 'error'); return; }
-    setSendingEmail(true);
-    try {
-      const result = await api.sendInvoiceEmail(emailModal.id, emailRecipient);
-      addToast(
-        'Email Sent',
-        result.simulated
-          ? `Invoice ${result.invoice_number} marked as sent (configure SMTP in server/.env to enable actual email delivery)`
-          : `Invoice ${result.invoice_number} sent to ${result.recipient}`,
-        'success'
-      );
-      setEmailModal(null);
+      await api.updateInvoiceStatus(selected.id, 'paid');
+      addToast('Marked as Paid', selected.invoice_number, 'success');
+      setSelected(prev => ({ ...prev, status: 'paid' }));
       load();
     } catch (e) {
       addToast('Error', e.message, 'error');
     } finally {
-      setSendingEmail(false);
+      setProcessing(false);
     }
   };
 
+  const handleSendEmail = async () => {
+    if (!selected) return;
+    setProcessing(true);
+    try {
+      await api.sendInvoiceEmail(selected.id);
+      addToast('Email Sent', `Invoice sent to ${selected.vendor_name}`, 'success');
+    } catch (e) {
+      addToast('Error', e.message, 'error');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  if (loading || loadingDetail) return <PageLoader />;
+
+  if (selected) {
+    return (
+      <InvoiceDocument
+        invoice={selected}
+        onClose={() => setSelected(null)}
+        onMarkPaid={handleMarkPaid}
+        onSendEmail={handleSendEmail}
+        canManage={canManage}
+      />
+    );
+  }
+
   return (
     <div className="space-y-5">
-      <SectionHeader title="Invoices" subtitle="Invoice management and tracking" />
+      <SectionHeader title="Invoices" subtitle="Purchase orders and payment records" />
 
-      {loading ? <PageLoader /> : invoices.length === 0 ? (
-        <Empty icon={Receipt} message="No invoices yet. Generate one from a Purchase Order." />
+      {invoices.length === 0 ? (
+        <Empty icon={FileText} message="No invoices found" />
       ) : (
-        <div className="space-y-2">
-          {invoices.map(inv => (
-            <div key={inv.id} className="bg-slate-800 border border-slate-700/50 rounded-xl overflow-hidden">
-              <div
-                className="px-5 py-4 flex items-center justify-between gap-4 cursor-pointer hover:bg-slate-700/20 transition-colors"
-                onClick={() => toggleExpand(inv)}
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0">
-                    <Receipt size={15} className="text-purple-400" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-white">{inv.invoice_number}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">{inv.vendor_name} · PO: {inv.po_number} · {fmtDate(inv.created_at)}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  <span className="text-sm font-semibold text-white">{fmt(inv.total)}</span>
-                  <StatusBadge status={inv.status} />
-                  {expanded === inv.id ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
-                </div>
-              </div>
-
-              {expanded === inv.id && expandedDetail && (
-                <div className="border-t border-slate-700/50 px-5 py-4 space-y-4">
-                  {/* Invoice detail */}
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                    <div>
-                      <p className="text-xs text-slate-500">Vendor</p>
-                      <p className="text-slate-200">{expandedDetail.vendor_name}</p>
-                      {expandedDetail.vendor_email && <p className="text-xs text-slate-500">{expandedDetail.vendor_email}</p>}
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500">RFQ</p>
-                      <p className="text-slate-200 truncate">{expandedDetail.rfq_title || '—'}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500">PO Number</p>
-                      <p className="text-slate-200">{expandedDetail.po_number}</p>
-                    </div>
-                  </div>
-
-                  {/* Amount breakdown */}
-                  <div className="bg-slate-900 rounded-lg p-4 space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-400">Subtotal</span>
-                      <span className="text-slate-200">{fmt(expandedDetail.subtotal)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-400">GST ({expandedDetail.tax_rate}%)</span>
-                      <span className="text-slate-200">{fmt(expandedDetail.tax_amount)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm font-semibold pt-2 border-t border-slate-700">
-                      <span className="text-white">Total</span>
-                      <span className="text-white text-base">{fmt(expandedDetail.total)}</span>
-                    </div>
-                  </div>
-
-                  {canManage && (
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Btn variant="secondary" size="sm" onClick={() => openPrint(inv)}>
-                        <Printer size={13} /> View / Print
-                      </Btn>
-                      {(inv.status === 'generated' || inv.status === 'sent') && (
-                        <Btn variant="primary" size="sm" onClick={() => openEmailModal(inv)}>
-                          <Mail size={13} /> Send Email
-                        </Btn>
-                      )}
-                      {inv.status === 'sent' && (
-                        <Btn variant="success" size="sm" onClick={() => handleStatusChange(inv, 'paid')}>
-                          Mark as Paid
-                        </Btn>
-                      )}
-                      {inv.status !== 'cancelled' && inv.status !== 'paid' && (
-                        <Btn variant="danger" size="sm" onClick={() => handleStatusChange(inv, 'cancelled')}>
-                          Cancel
-                        </Btn>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
+        <div className="bg-slate-800 border border-slate-700/50 rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-700/50 bg-slate-800/80">
+                  <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 uppercase tracking-wide">Invoice #</th>
+                  <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 uppercase tracking-wide">PO #</th>
+                  <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 uppercase tracking-wide">Vendor</th>
+                  <th className="text-right text-xs font-medium text-slate-500 px-4 py-3 uppercase tracking-wide">Total</th>
+                  <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 uppercase tracking-wide">Date</th>
+                  <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 uppercase tracking-wide">Status</th>
+                  <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 uppercase tracking-wide">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-700/20">
+                {invoices.map(inv => (
+                  <tr key={inv.id} className="hover:bg-slate-700/10 transition-colors">
+                    <td className="px-4 py-3 text-xs font-mono text-slate-400">{inv.invoice_number}</td>
+                    <td className="px-4 py-3 text-xs font-mono text-slate-400">{inv.po_number}</td>
+                    <td className="px-4 py-3 text-sm text-white">{inv.vendor_name}</td>
+                    <td className="px-4 py-3 text-sm text-right font-semibold text-white">{fmt(inv.total)}</td>
+                    <td className="px-4 py-3 text-sm text-slate-400">{fmtDate(inv.created_at)}</td>
+                    <td className="px-4 py-3"><StatusBadge status={inv.status} /></td>
+                    <td className="px-4 py-3">
+                      <Btn variant="secondary" size="sm" onClick={() => handleView(inv)}>View</Btn>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      )}
-
-      {/* Send Email Modal */}
-      {emailModal && (
-        <Modal
-          title={`Send Invoice — ${emailModal.invoice_number}`}
-          onClose={() => setEmailModal(null)}
-          footer={<>
-            <Btn variant="secondary" onClick={() => setEmailModal(null)}>Cancel</Btn>
-            <Btn variant="primary" onClick={handleSendEmail} disabled={sendingEmail}>
-              {sendingEmail ? 'Sending…' : <><Mail size={14} /> Send Invoice</>}
-            </Btn>
-          </>}
-        >
-          <div className="space-y-4">
-            <div className="bg-slate-900 rounded-lg p-4 space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-slate-400">Invoice</span>
-                <span className="text-white font-medium">{emailModal.invoice_number}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Vendor</span>
-                <span className="text-white">{emailModal.vendor_name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Total</span>
-                <span className="text-emerald-400 font-semibold">{fmt(emailModal.total)}</span>
-              </div>
-            </div>
-            <Input
-              label="Recipient Email *"
-              type="email"
-              value={emailRecipient}
-              onChange={e => setEmailRecipient(e.target.value)}
-              placeholder="vendor@company.com"
-            />
-            {!process.env.SMTP_HOST && (
-              <p className="text-xs text-amber-500/80 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
-                SMTP not configured — invoice will be marked as sent. Add SMTP_HOST, SMTP_USER, SMTP_PASSWORD to server/.env for actual email delivery.
-              </p>
-            )}
-          </div>
-        </Modal>
-      )}
-
-      {/* Print Modal */}
-      {printModal && (
-        <Modal
-          title={`Invoice — ${printModal.invoice_number}`}
-          onClose={() => setPrintModal(null)}
-          footer={<>
-            <Btn variant="secondary" onClick={() => setPrintModal(null)}>Close</Btn>
-            <Btn variant="primary" onClick={handlePrint}><Printer size={14} /> Print</Btn>
-          </>}
-        >
-          <div className="space-y-5 text-sm" id="invoice-print">
-            {/* Header */}
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-7 h-7 rounded-md bg-indigo-600 flex items-center justify-center text-white text-xs font-bold">V</div>
-                  <span className="font-bold text-white text-base">VendorBridge</span>
-                </div>
-                <p className="text-xs text-slate-500">Procurement ERP Platform</p>
-              </div>
-              <div className="text-right">
-                <p className="text-lg font-bold text-white">{printModal.invoice_number}</p>
-                <StatusBadge status={printModal.status} />
-                <p className="text-xs text-slate-500 mt-1">{fmtDate(printModal.created_at)}</p>
-              </div>
-            </div>
-
-            <div className="h-px bg-slate-700" />
-
-            {/* Parties */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-xs font-medium text-slate-500 uppercase mb-1">Vendor</p>
-                <p className="text-slate-200 font-medium">{printModal.vendor_name}</p>
-                {printModal.vendor_email && <p className="text-xs text-slate-400">{printModal.vendor_email}</p>}
-                {printModal.gst_number && <p className="text-xs text-slate-500 font-mono mt-0.5">GST: {printModal.gst_number}</p>}
-                {printModal.address && <p className="text-xs text-slate-500 mt-0.5">{[printModal.address, printModal.city, printModal.state].filter(Boolean).join(', ')}</p>}
-              </div>
-              <div>
-                <p className="text-xs font-medium text-slate-500 uppercase mb-1">Reference</p>
-                <p className="text-xs text-slate-400">PO: <span className="text-slate-200">{printModal.po_number}</span></p>
-                {printModal.rfq_title && <p className="text-xs text-slate-400">RFQ: <span className="text-slate-200 truncate">{printModal.rfq_title}</span></p>}
-                {printModal.delivery_date && <p className="text-xs text-slate-400">Delivery: <span className="text-slate-200">{fmtDate(printModal.delivery_date)}</span></p>}
-              </div>
-            </div>
-
-            {/* Amount */}
-            <div className="bg-slate-900 rounded-lg p-4 space-y-2">
-              <div className="flex justify-between"><span className="text-slate-400">Subtotal</span><span className="text-slate-200">{fmt(printModal.subtotal)}</span></div>
-              <div className="flex justify-between"><span className="text-slate-400">GST ({printModal.tax_rate}%)</span><span className="text-slate-200">{fmt(printModal.tax_amount)}</span></div>
-              <div className="flex justify-between font-bold pt-2 border-t border-slate-700">
-                <span className="text-white">Total Payable</span>
-                <span className="text-white text-base">{fmt(printModal.total)}</span>
-              </div>
-            </div>
-          </div>
-        </Modal>
       )}
     </div>
   );

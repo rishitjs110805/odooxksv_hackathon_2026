@@ -183,6 +183,7 @@ export default function Vendors({ user, addToast }) {
         {canEdit && <Btn variant="primary" onClick={openCreate}><Plus size={15} /> Add Vendor</Btn>}
       </SectionHeader>
 
+      {/* Search */}
       <div className="relative">
         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
         <input
@@ -194,6 +195,7 @@ export default function Vendors({ user, addToast }) {
         />
       </div>
 
+      {/* Filter Tabs */}
       <div className="flex gap-2 flex-wrap">
         {TABS.map(t => (
           <button
@@ -255,6 +257,7 @@ export default function Vendors({ user, addToast }) {
         </div>
       )}
 
+      {/* View / Edit Modal */}
       {modal === 'view' && selected && (
         <Modal
           title={selected.name}
@@ -303,6 +306,7 @@ export default function Vendors({ user, addToast }) {
         </Modal>
       )}
 
+      {/* Create Modal */}
       {modal === 'create' && (
         <Modal
           title="Add Vendor"
@@ -316,6 +320,7 @@ export default function Vendors({ user, addToast }) {
         </Modal>
       )}
 
+      {/* Delete Confirm */}
       {modal === 'delete' && selected && (
         <Modal
           title="Delete Vendor"
