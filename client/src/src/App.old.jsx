@@ -7,7 +7,8 @@ import {
   X, Check, Bell, Calendar, Tag, Zap, Eye, ChevronDown,
   LogIn, UserPlus, Upload, Trash2, Edit, Filter, Shield,
   Activity, FileCheck, ClipboardList, Globe, Phone, Mail,
-  Lock, User, Image, ArrowRight, CircleDot, Hash
+  Lock, User, Image, ArrowRight, CircleDot, Hash, LogOut,
+  TrendingDown, PieChart, BarChart, ThumbsUp, ThumbsDown
 } from 'lucide-react';
 
 
@@ -15,69 +16,58 @@ import {
 //  MOCK DATA
 // ═══════════════════════════════════════════════════════════════════════════
 
-const initialVendors = [
-  { id: 'V-001', name: 'Infra Supplies Pvt Ltd', category: 'Hardware', rating: 4.8, onTime: 96, contact: 'vendor@infrasupplies.com', phone: '+91 98765 43210', totalOrders: 42, status: 'Active', location: 'Mumbai, India' },
-  { id: 'V-002', name: 'Office Furnishings Co', category: 'Furniture', rating: 4.5, onTime: 91, contact: 'sales@officefurnish.com', phone: '+91 87654 32109', totalOrders: 28, status: 'Active', location: 'Delhi, India' },
-  { id: 'V-003', name: 'DigiParts Industries', category: 'Electronics', rating: 4.2, onTime: 88, contact: 'orders@digiparts.in', phone: '+91 76543 21098', totalOrders: 15, status: 'Active', location: 'Bangalore, India' },
-  { id: 'V-004', name: 'GreenSource Materials', category: 'Stationery', rating: 4.6, onTime: 94, contact: 'hello@greensource.com', phone: '+91 65432 10987', totalOrders: 33, status: 'Inactive', location: 'Pune, India' },
+const initialUsers = [
+  { id: 1, name: 'Manav Panchal', email: 'manav@company.com', role: 'procurement_officer', status: 'active', joinDate: '2025-01-15' },
+  { id: 2, name: 'Amit Kumar', email: 'amit@company.com', role: 'manager', status: 'active', joinDate: '2024-11-10' },
+  { id: 3, name: 'Priya Sharma', email: 'priya@company.com', role: 'admin', status: 'active', joinDate: '2024-06-01' },
+  { id: 4, name: 'Rajesh Verma', email: 'rajesh@company.com', role: 'procurement_officer', status: 'active', joinDate: '2025-02-20' },
+  { id: 5, name: 'Neha Singh', email: 'neha@company.com', role: 'vendor', status: 'active', joinDate: '2024-12-05' },
 ];
 
+const initialVendors = [
+  { id: 1, name: 'Infra Supplies Pvt Ltd', category: 'Hardware', rating: 4.8, onTime: 96, contact: 'vendor@infrasupplies.com', phone: '+91 98765 43210', totalOrders: 42, status: 'active', location: 'Mumbai, India', gst: 'GSTIN:27AADCI1234F1ZH' },
+  { id: 2, name: 'Office Furnishings Co', category: 'Furniture', rating: 4.5, onTime: 91, contact: 'sales@officefurnish.com', phone: '+91 87654 32109', totalOrders: 28, status: 'active', location: 'Delhi, India', gst: 'GSTIN:07AADCO5678G2ZK' },
+  { id: 3, name: 'DigiParts Industries', category: 'Electronics', rating: 4.2, onTime: 88, contact: 'orders@digiparts.in', phone: '+91 76543 21098', totalOrders: 15, status: 'active', location: 'Bangalore, India', gst: 'GSTIN:29AADDI9999Z1Y2' },
+  { id: 4, name: 'GreenSource Materials', category: 'Stationery', rating: 4.6, onTime: 94, contact: 'hello@greensource.com', phone: '+91 65432 10987', totalOrders: 33, status: 'inactive', location: 'Pune, India', gst: 'GSTIN:27AADGS5555Z1X3' },
+  { id: 5, name: 'Premium Tech Solutions', category: 'Electronics', rating: 4.7, onTime: 95, contact: 'sales@premtech.com', phone: '+91 55555 66666', totalOrders: 22, status: 'active', location: 'Hyderabad, India', gst: 'GSTIN:29AADPT1111Z1Z4' },
+];
+
+
 const initialRFQs = [
-  { id: 'RFQ-001', title: 'Office Furniture Procurement Q1', category: 'Furniture', quantity: 50, deadline: '2025-06-15', status: 'Open', vendors: ['V-002', 'V-004'], createdAt: '2025-05-20', description: 'Procurement of ergonomic desks and chairs for new office wing.', items: [{ name: 'Standing Desk', qty: 30, unit: 'pcs', estCost: 15000 }, { name: 'Ergonomic Chair', qty: 20, unit: 'pcs', estCost: 8000 }] },
-  { id: 'RFQ-002', title: 'IT Infrastructure Upgrade', category: 'Hardware', quantity: 100, deadline: '2025-06-30', status: 'Open', vendors: ['V-001', 'V-003'], createdAt: '2025-05-25', description: 'Server and networking equipment for data center expansion.', items: [{ name: 'Rack Server', qty: 10, unit: 'pcs', estCost: 120000 }, { name: 'Network Switch', qty: 20, unit: 'pcs', estCost: 25000 }] },
-  { id: 'RFQ-003', title: 'Stationery Supply FY26', category: 'Stationery', quantity: 500, deadline: '2025-07-01', status: 'Draft', vendors: [], createdAt: '2025-06-01', description: 'Annual stationery procurement for all departments.', items: [{ name: 'A4 Paper Reams', qty: 200, unit: 'reams', estCost: 350 }, { name: 'Printer Cartridges', qty: 50, unit: 'pcs', estCost: 2500 }] },
-  { id: 'RFQ-004', title: 'Laptop Fleet Procurement', category: 'Electronics', quantity: 75, deadline: '2025-06-20', status: 'Closed', vendors: ['V-001', 'V-003'], createdAt: '2025-05-10', description: 'Laptops for new hires in engineering and design teams.', items: [{ name: 'Laptop 14" i7', qty: 50, unit: 'pcs', estCost: 72000 }, { name: 'Laptop 16" i9', qty: 25, unit: 'pcs', estCost: 135000 }] },
+  { id: 1, title: 'Office Furniture Procurement Q1', category: 'Furniture', quantity: 50, deadline: '2026-06-15', status: 'open', vendors: [2, 4], createdAt: '2026-05-20', description: 'Procurement of ergonomic desks and chairs for new office wing.', items: [{ name: 'Standing Desk', qty: 30, unit: 'pcs', estCost: 15000 }, { name: 'Ergonomic Chair', qty: 20, unit: 'pcs', estCost: 8000 }] },
+  { id: 2, title: 'IT Infrastructure Upgrade', category: 'Hardware', quantity: 100, deadline: '2026-06-30', status: 'open', vendors: [1, 3], createdAt: '2026-05-25', description: 'Server and networking equipment for data center expansion.', items: [{ name: 'Rack Server', qty: 10, unit: 'pcs', estCost: 120000 }, { name: 'Network Switch', qty: 20, unit: 'pcs', estCost: 25000 }] },
+  { id: 3, title: 'Stationery Supply FY26', category: 'Stationery', quantity: 500, deadline: '2026-07-01', status: 'draft', vendors: [], createdAt: '2026-06-01', description: 'Annual stationery procurement for all departments.', items: [{ name: 'A4 Paper Reams', qty: 200, unit: 'reams', estCost: 350 }, { name: 'Printer Cartridges', qty: 50, unit: 'pcs', estCost: 2500 }] },
+  { id: 4, title: 'Laptop Fleet Procurement', category: 'Electronics', quantity: 75, deadline: '2026-06-20', status: 'closed', vendors: [1, 3], createdAt: '2026-05-10', description: 'Laptops for new hires in engineering and design teams.', items: [{ name: 'Laptop 14" i7', qty: 50, unit: 'pcs', estCost: 72000 }, { name: 'Laptop 16" i9', qty: 25, unit: 'pcs', estCost: 135000 }] },
 ];
 
 const initialQuotations = [
-  { id: 'QT-001', rfqId: 'RFQ-001', vendorId: 'V-002', vendorName: 'Office Furnishings Co', unitPrice: 14200, totalPrice: 710000, deliveryDays: 14, qualityScore: 92, warranty: '2 Years', notes: 'Includes installation', submittedAt: '2025-05-28' },
-  { id: 'QT-002', rfqId: 'RFQ-001', vendorId: 'V-004', vendorName: 'GreenSource Materials', unitPrice: 13800, totalPrice: 690000, deliveryDays: 21, qualityScore: 87, warranty: '1 Year', notes: 'Bulk discount 5%', submittedAt: '2025-05-30' },
-  { id: 'QT-003', rfqId: 'RFQ-002', vendorId: 'V-001', vendorName: 'Infra Supplies Pvt Ltd', unitPrice: 108000, totalPrice: 1890000, deliveryDays: 10, qualityScore: 95, warranty: '3 Years', notes: 'Premium SLA included', submittedAt: '2025-06-01' },
-  { id: 'QT-004', rfqId: 'RFQ-002', vendorId: 'V-003', vendorName: 'DigiParts Industries', unitPrice: 102000, totalPrice: 1780000, deliveryDays: 18, qualityScore: 89, warranty: '2 Years', notes: 'Extended support available', submittedAt: '2025-06-02' },
-];
-
-const initialPOs = [
-  { id: 'PO-2025-001', rfqId: 'RFQ-004', vendorId: 'V-001', vendorName: 'Infra Supplies Pvt Ltd', vendorAddress: '42 Industrial Area, Andheri East, Mumbai 400093', vendorGST: 'GSTIN:27AADCI1234F1ZH', amount: 189400, items: [{ name: 'Laptop 14" i7', qty: 50, unitPrice: 72000, total: 3600000 }, { name: 'Laptop 16" i9', qty: 25, unitPrice: 135000, total: 3375000 }], status: 'Approved', createdAt: '2025-05-15', approver: 'VP Engineering', poDate: '21 may 2025', deliveryDate: '15 june 2025' },
-  { id: 'PO-2025-002', rfqId: 'RFQ-001', vendorId: 'V-002', vendorName: 'Office Furnishings Co', vendorAddress: '108 Commerce Hub, Connaught Place, Delhi 110001', vendorGST: 'GSTIN:07AADCO5678G2ZK', amount: 710000, items: [{ name: 'Standing Desk', qty: 30, unitPrice: 15000, total: 450000 }, { name: 'Ergonomic Chair', qty: 20, unitPrice: 8000, total: 160000 }], status: 'Pending Approval', createdAt: '2025-06-03', approver: 'CFO', poDate: '03 june 2025', deliveryDate: '20 june 2025' },
-];
-
-const initialInvoices = [
-  {
-    id: 'INV-2025-001', poId: 'PO-2025-001', vendorName: 'Infra Supplies Pvt Ltd', vendorAddress: '42 Industrial Area, Andheri East, Mumbai 400093', vendorGST: 'GSTIN:27AADCI1234F1ZH',
-    date: '2025-05-21', dueDate: '2025-06-21', status: 'Unpaid',
-    items: [
-      { name: 'Laptop 14" i7 16GB', qty: 50, unitPrice: 72000 },
-      { name: 'Laptop 16" i9 32GB', qty: 25, unitPrice: 135000 },
-      { name: 'Setup & Imaging Service', qty: 75, unitPrice: 500 },
-    ],
-    taxRate: 18, notes: 'Payment terms: Net 30. Dispatch within 10 business days.'
-  },
-  {
-    id: 'INV-2025-002', poId: 'PO-2025-002', vendorName: 'Office Furnishings Co', vendorAddress: '108 Commerce Hub, Connaught Place, Delhi 110001', vendorGST: 'GSTIN:07AADCO5678G2ZK',
-    date: '2025-06-03', dueDate: '2025-07-03', status: 'Paid',
-    items: [
-      { name: 'Ergonomic Standing Desk', qty: 30, unitPrice: 15000 },
-      { name: 'Executive Mesh Chair', qty: 20, unitPrice: 8000 },
-      { name: 'Delivery & Assembly', qty: 1, unitPrice: 12000 },
-    ],
-    taxRate: 18, notes: 'Payment terms: Net 30.'
-  },
-];
-
-const initialActivities = [
-  { id: 1, action: 'RFQ Created', detail: 'RFQ-003 — Stationery Supply FY26 created by Manav Panchal', time: '2 hours ago', type: 'rfq', icon: 'create' },
-  { id: 2, action: 'Quotation Submitted', detail: 'Infra Supplies pvt ltd submitted quotation for RFQ-002 (IT Infrastructure)', time: '4 hours ago', type: 'quotation', icon: 'receive' },
-  { id: 3, action: 'PO Approved', detail: 'PO-2025-001 approved by VP Engineering — ₹18,94,000', time: '1 day ago', type: 'approval', icon: 'approve' },
-  { id: 4, action: 'Invoice Generated', detail: 'INV-2025-001 for Infra Supplies Pvt Ltd — auto-generated', time: '1 day ago', type: 'invoice', icon: 'invoice' },
-  { id: 5, action: 'Vendor Added', detail: 'GreenSource Materials onboarded and quality-verified', time: '3 days ago', type: 'vendor', icon: 'vendor' },
-  { id: 6, action: 'RFQ Closed', detail: 'RFQ-004 — Laptop Fleet Procurement closed after evaluation', time: '5 days ago', type: 'rfq', icon: 'close' },
-  { id: 7, action: 'Approval Rejected', detail: 'PO draft for RFQ-003 rejected by Finance Head — budget mismatch', time: '6 days ago', type: 'approval', icon: 'reject' },
-  { id: 8, action: 'Quotation Compared', detail: 'Quotation comparison completed for RFQ-001 — 2 vendors evaluated', time: '7 days ago', type: 'quotation', icon: 'compare' },
+  { id: 1, rfqId: 1, vendorId: 2, vendorName: 'Office Furnishings Co', unitPrice: 14200, totalPrice: 710000, deliveryDays: 14, qualityScore: 92, warranty: '2 Years', notes: 'Includes installation', status: 'submitted', submittedAt: '2026-05-28' },
+  { id: 2, rfqId: 1, vendorId: 4, vendorName: 'GreenSource Materials', unitPrice: 13800, totalPrice: 690000, deliveryDays: 21, qualityScore: 87, warranty: '1 Year', notes: 'Bulk discount 5%', status: 'submitted', submittedAt: '2026-05-30' },
+  { id: 3, rfqId: 2, vendorId: 1, vendorName: 'Infra Supplies Pvt Ltd', unitPrice: 108000, totalPrice: 1890000, deliveryDays: 10, qualityScore: 95, warranty: '3 Years', notes: 'Premium SLA included', status: 'under_review', submittedAt: '2026-06-01' },
+  { id: 4, rfqId: 2, vendorId: 3, vendorName: 'DigiParts Industries', unitPrice: 102000, totalPrice: 1780000, deliveryDays: 18, qualityScore: 89, warranty: '2 Years', notes: 'Extended support available', status: 'accepted', submittedAt: '2026-06-02' },
 ];
 
 const initialApprovals = [
-  { id: 'APR-001', rfqId: 'RFQ-001', poId: 'PO-2025-002', vendorName: 'Office Furnishings Co', amount: 710000, status: 'Pending', currentStep: 2, steps: ['Submitted', 'Manager Review', 'Finance Check', 'Director Sign-off', 'Completed'], createdAt: '2025-06-03' },
-  { id: 'APR-002', rfqId: 'RFQ-004', poId: 'PO-2025-001', vendorName: 'Infra Supplies Pvt Ltd', amount: 189400, status: 'Approved', currentStep: 5, steps: ['Submitted', 'Manager Review', 'Finance Check', 'Director Sign-off', 'Completed'], createdAt: '2025-05-15' },
+  { id: 1, quotationId: 3, rfqId: 2, poId: 'PO-2025-002', vendorName: 'Infra Supplies Pvt Ltd', amount: 1890000, status: 'pending', approverRole: 'Manager', createdAt: '2026-06-03', remarks: '' },
+  { id: 2, quotationId: 4, rfqId: 2, poId: 'PO-2025-001', vendorName: 'DigiParts Industries', amount: 1780000, status: 'approved', approverRole: 'Manager', createdAt: '2026-05-15', remarks: 'Approved - Good pricing and timeline' },
+];
+
+const initialPOs = [
+  { id: 1, poNumber: 'PO-2025-001', rfqId: 4, vendorId: 1, vendorName: 'Infra Supplies Pvt Ltd', amount: 3975000, status: 'approved', createdAt: '2026-05-15', deliveryDate: '2026-06-15', items: [{ name: 'Laptop 14" i7', qty: 50, unitPrice: 72000, total: 3600000 }, { name: 'Laptop 16" i9', qty: 25, unitPrice: 135000, total: 3375000 }] },
+  { id: 2, poNumber: 'PO-2025-002', rfqId: 1, vendorId: 2, vendorName: 'Office Furnishings Co', amount: 710000, status: 'pending', createdAt: '2026-06-03', deliveryDate: '2026-06-20', items: [{ name: 'Standing Desk', qty: 30, unitPrice: 15000, total: 450000 }, { name: 'Ergonomic Chair', qty: 20, unitPrice: 8000, total: 160000 }] },
+];
+
+const initialInvoices = [
+  { id: 1, invoiceNumber: 'INV-2025-001', poId: 1, vendorName: 'Infra Supplies Pvt Ltd', amount: 3975000, status: 'paid', dueDate: '2026-06-21', createdAt: '2026-05-21' },
+  { id: 2, invoiceNumber: 'INV-2025-002', poId: 2, vendorName: 'Office Furnishings Co', amount: 710000, status: 'pending', dueDate: '2026-07-03', createdAt: '2026-06-03' },
+];
+
+const initialActivities = [
+  { id: 1, action: 'RFQ Created', detail: 'RFQ-3 — Stationery Supply FY26 created by Manav Panchal', time: '2 hours ago', type: 'rfq', icon: 'create' },
+  { id: 2, action: 'Quotation Submitted', detail: 'Infra Supplies pvt ltd submitted quotation for RFQ-2 (IT Infrastructure)', time: '4 hours ago', type: 'quotation', icon: 'receive' },
+  { id: 3, action: 'PO Approved', detail: 'PO-2025-001 approved by VP Engineering — ₹39,75,000', time: '1 day ago', type: 'approval', icon: 'approve' },
+  { id: 4, action: 'Invoice Generated', detail: 'INV-2025-001 for Infra Supplies Pvt Ltd — auto-generated', time: '1 day ago', type: 'invoice', icon: 'invoice' },
+  { id: 5, action: 'Vendor Added', detail: 'GreenSource Materials onboarded and quality-verified', time: '3 days ago', type: 'vendor', icon: 'vendor' },
 ];
 
 
@@ -156,21 +146,35 @@ function SectionHeader({ title, subtitle, children }) {
 function LoginScreen({ onLogin, onGoToRegister }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('Procurement Officer');
 
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
+
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-2xl mx-auto shadow-2xl shadow-indigo-500/30">V</div>
-          <h1 className="text-2xl font-bold text-white mt-4 tracking-tight">VendorBridge</h1>
-          <p className="text-slate-400 text-sm mt-1">Procurement ERP Platform</p>
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-2xl mx-auto shadow-2xl shadow-indigo-500/30">
+            V
+          </div>
+
+          <h1 className="text-2xl font-bold text-white mt-4 tracking-tight">
+            VendorBridge
+          </h1>
+
+          <p className="text-slate-400 text-sm mt-1">
+            Procurement ERP Platform
+          </p>
         </div>
 
+        {/* Card */}
         <div className="bg-slate-900/60 border border-white/10 rounded-2xl p-8 backdrop-blur-sm shadow-2xl">
-          <h2 className="text-lg font-semibold text-white mb-6">Sign in to your account</h2>
 
-          {/* Avatar placeholder */}
+          <h2 className="text-lg font-semibold text-white mb-6">
+            Sign in to your account
+          </h2>
+
+          {/* Avatar */}
           <div className="flex justify-center mb-6">
             <div className="w-20 h-20 rounded-full bg-slate-800 border-2 border-dashed border-white/20 flex items-center justify-center">
               <User size={32} className="text-slate-500" />
@@ -178,41 +182,113 @@ function LoginScreen({ onLogin, onGoToRegister }) {
           </div>
 
           <div className="space-y-4">
+
+            {/* Role Selection */}
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">Username</label>
-              <div className="relative">
-                <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                <input type="text" value={username} onChange={e => setUsername(e.target.value)} placeholder="Enter your username"
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-800/60 border border-white/10 rounded-xl text-white text-sm placeholder-slate-500 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all" />
-              </div>
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                Login As
+              </label>
+
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="w-full px-4 py-2.5 bg-slate-800/60 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all"
+              >
+                <option className="bg-slate-900">
+                  Procurement Officer
+                </option>
+
+                <option className="bg-slate-900">
+                  Vendor
+                </option>
+
+                <option className="bg-slate-900">
+                  Manager / Approver
+                </option>
+
+                <option className="bg-slate-900">
+                  Admin
+                </option>
+              </select>
             </div>
+
+            {/* Username */}
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">Password</label>
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                Username
+              </label>
+
               <div className="relative">
-                <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter your password"
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-800/60 border border-white/10 rounded-xl text-white text-sm placeholder-slate-500 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all" />
+                <User
+                  size={16}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
+                />
+
+                <input
+                  type="text"
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
+                  placeholder="Enter your username"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-800/60 border border-white/10 rounded-xl text-white text-sm placeholder-slate-500 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all"
+                />
               </div>
             </div>
 
-            <button onClick={() => onLogin(username || 'Manav Panchal')}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold transition-all duration-200 shadow-lg shadow-indigo-600/25 mt-2">
-              <LogIn size={16} /> Login
+            {/* Password */}
+            <div>
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                Password
+              </label>
+
+              <div className="relative">
+                <Lock
+                  size={16}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
+                />
+
+                <input
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-800/60 border border-white/10 rounded-xl text-white text-sm placeholder-slate-500 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Login Button */}
+            <button
+              onClick={() =>
+                onLogin({
+                  username: username || 'Manav Panchal',
+                  role,
+                })
+              }
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold transition-all duration-200 shadow-lg shadow-indigo-600/25 mt-2"
+            >
+              <LogIn size={16} />
+              Login as {role}
             </button>
           </div>
 
+          {/* Register */}
           <div className="mt-6 text-center">
             <p className="text-sm text-slate-400">
               Don't have an account?{' '}
-              <button onClick={onGoToRegister} className="text-indigo-400 hover:text-indigo-300 font-semibold transition-colors">Register</button>
+              <button
+                onClick={onGoToRegister}
+                className="text-indigo-400 hover:text-indigo-300 font-semibold transition-colors"
+              >
+                Register
+              </button>
             </p>
           </div>
+
         </div>
       </div>
     </div>
   );
 }
-
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  SCREEN 2 — REGISTRATION
