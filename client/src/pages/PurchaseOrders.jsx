@@ -13,7 +13,7 @@ export default function PurchaseOrders({ user, addToast, setActiveView }) {
   const [form, setForm] = useState({ quotation_id: '', delivery_date: '' });
   const [saving, setSaving] = useState(false);
 
-  const canCreate = ['admin', 'procurement_officer'].includes(user?.role);
+  const canCreate = ['admin', 'procurement_officer', 'manager'].includes(user?.role);
 
   const load = () => {
     setLoading(true);

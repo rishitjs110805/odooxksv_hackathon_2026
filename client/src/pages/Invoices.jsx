@@ -168,7 +168,7 @@ export default function Invoices({ user, addToast }) {
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [processing, setProcessing] = useState(false);
 
-  const canManage = ['admin', 'procurement_officer'].includes(user?.role);
+  const canManage = ['admin', 'procurement_officer', 'manager'].includes(user?.role);
 
   const load = () => {
     setLoading(true);

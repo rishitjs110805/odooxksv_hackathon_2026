@@ -49,7 +49,7 @@ export default function Approvals({ user, addToast }) {
   const [processing, setProcessing] = useState(false);
 
   const isManager = ['admin', 'manager'].includes(user?.role);
-  const canCreate = ['admin', 'procurement_officer'].includes(user?.role);
+  const canCreate = ['admin', 'procurement_officer', 'manager'].includes(user?.role);
 
   const load = useCallback(() => {
     setLoading(true);

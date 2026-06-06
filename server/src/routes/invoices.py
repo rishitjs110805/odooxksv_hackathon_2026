@@ -22,7 +22,7 @@ class SendEmailBody(BaseModel):
 
 
 @router.post("")
-async def generate_invoice(body: InvoiceBody, user: dict = Depends(require_roles("admin", "procurement_officer"))):
+async def generate_invoice(body: InvoiceBody, user: dict = Depends(require_roles("admin", "procurement_officer", "manager"))):
     pool = await get_pool()
     async with pool.acquire() as conn:
         po = await conn.fetchrow("SELECT * FROM purchase_orders WHERE id=$1", body.po_id)
@@ -109,7 +109,7 @@ async def get_invoice(invoice_id: int, user: dict = Depends(get_current_user)):
 
 
 @router.patch("/{invoice_id}/status")
-async def update_invoice_status(invoice_id: int, status: str, user: dict = Depends(require_roles("admin", "procurement_officer"))):
+async def update_invoice_status(invoice_id: int, status: str, user: dict = Depends(require_roles("admin", "procurement_officer", "manager"))):
     if status not in ("generated", "sent", "paid", "cancelled"):
         raise HTTPException(400, "Invalid status")
     pool = await get_pool()
@@ -122,7 +122,7 @@ async def update_invoice_status(invoice_id: int, status: str, user: dict = Depen
 
 
 @router.post("/{invoice_id}/send-email")
-async def send_invoice_email(invoice_id: int, body: SendEmailBody, user: dict = Depends(require_roles("admin", "procurement_officer"))):
+async def send_invoice_email(invoice_id: int, body: SendEmailBody, user: dict = Depends(require_roles("admin", "procurement_officer", "manager"))):
     pool = await get_pool()
     async with pool.acquire() as conn:
         row = await conn.fetchrow(

@@ -15,7 +15,7 @@ class POBody(BaseModel):
 
 
 @router.post("")
-async def create_po(body: POBody, user: dict = Depends(require_roles("admin", "procurement_officer"))):
+async def create_po(body: POBody, user: dict = Depends(require_roles("admin", "procurement_officer", "manager"))):
     pool = await get_pool()
     async with pool.acquire() as conn:
         q = await conn.fetchrow("SELECT * FROM quotations WHERE id=$1", body.quotation_id)
@@ -92,7 +92,7 @@ async def get_po(po_id: int, user: dict = Depends(get_current_user)):
 
 
 @router.patch("/{po_id}/status")
-async def update_po_status(po_id: int, status: str, user: dict = Depends(require_roles("admin", "procurement_officer"))):
+async def update_po_status(po_id: int, status: str, user: dict = Depends(require_roles("admin", "procurement_officer", "manager"))):
     if status not in ("issued", "delivered", "cancelled"):
         raise HTTPException(400, "Invalid status")
     pool = await get_pool()

@@ -47,7 +47,7 @@ async def list_vendors(
 
 
 @router.post("")
-async def create_vendor(body: VendorBody, user: dict = Depends(require_roles("admin", "procurement_officer"))):
+async def create_vendor(body: VendorBody, user: dict = Depends(require_roles("admin", "procurement_officer", "manager"))):
     pool = await get_pool()
     async with pool.acquire() as conn:
         existing = await conn.fetchval("SELECT id FROM vendors WHERE email=$1", body.email)
@@ -74,7 +74,7 @@ async def get_vendor(vendor_id: int, user: dict = Depends(get_current_user)):
 
 
 @router.put("/{vendor_id}")
-async def update_vendor(vendor_id: int, body: VendorBody, user: dict = Depends(require_roles("admin", "procurement_officer"))):
+async def update_vendor(vendor_id: int, body: VendorBody, user: dict = Depends(require_roles("admin", "procurement_officer", "manager"))):
     pool = await get_pool()
     async with pool.acquire() as conn:
         row = await conn.fetchrow(

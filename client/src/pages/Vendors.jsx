@@ -42,7 +42,7 @@ export default function Vendors({ user, addToast }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
 
-  const canEdit = ['admin', 'procurement_officer'].includes(user?.role);
+  const canEdit = ['admin', 'procurement_officer', 'manager'].includes(user?.role);
   const canDelete = user?.role === 'admin';
   const isCreate = modal === 'create';
 
