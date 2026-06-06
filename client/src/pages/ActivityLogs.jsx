@@ -1,37 +1,69 @@
 import { useEffect, useState } from 'react';
-import { Activity, FileText, GitCompare, ShoppingCart, Receipt, Shield, Building2, Users } from 'lucide-react';
+import { Activity, FileText, GitCompare, ShoppingCart, Receipt, Shield, Building2, Users, Check } from 'lucide-react';
 import { api } from '../services/api';
 import { PageLoader, SectionHeader, Empty, Btn } from '../components/ui';
 
-const ENTITY_ICONS = {
-  rfq: FileText,
-  quotation: GitCompare,
-  approval: Shield,
-  purchase_order: ShoppingCart,
-  invoice: Receipt,
-  vendor: Building2,
-  user: Users,
+const ENTITY_CFG = {
+  rfq:            { icon: FileText,     cls: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
+  quotation:      { icon: GitCompare,   cls: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20' },
+  approval:       { icon: Shield,       cls: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+  purchase_order: { icon: ShoppingCart, cls: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+  invoice:        { icon: Receipt,      cls: 'text-purple-400 bg-purple-500/10 border-purple-500/20' },
+  vendor:         { icon: Building2,    cls: 'text-pink-400 bg-pink-500/10 border-pink-500/20' },
+  user:           { icon: Users,        cls: 'text-slate-400 bg-slate-500/10 border-slate-500/20' },
 };
 
-const ENTITY_COLORS = {
-  rfq: 'text-blue-400 bg-blue-500/10',
-  quotation: 'text-indigo-400 bg-indigo-500/10',
-  approval: 'text-amber-400 bg-amber-500/10',
-  purchase_order: 'text-emerald-400 bg-emerald-500/10',
-  invoice: 'text-purple-400 bg-purple-500/10',
-  vendor: 'text-pink-400 bg-pink-500/10',
-  user: 'text-slate-400 bg-slate-500/10',
+const FILTER_TABS = [
+  { label: 'All',       type: '' },
+  { label: 'RFQ',       type: 'rfq' },
+  { label: 'Approvals', type: 'approval' },
+  { label: 'Invoices',  type: 'invoice' },
+  { label: 'Vendors',   type: 'vendor' },
+];
+
+const ACTION_DESC = {
+  approval_initiated: 'Approval initiated',
+  approval_approved:  'Approval approved',
+  approval_rejected:  'Approval rejected',
+  generated:          'Generated',
+  email_sent:         'Email sent',
+  invoice_paid:       'Invoice marked as paid',
+  invoice_sent:       'Invoice sent',
+  invoice_generated:  'Invoice generated',
+  invoice_cancelled:  'Invoice cancelled',
+  created:            'Created',
+  updated:            'Updated',
+  deleted:            'Deleted',
 };
 
-function timeAgo(dateStr) {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  return `${days}d ago`;
+function describeActivity(log) {
+  const d = log.details || {};
+  const base = ACTION_DESC[log.action] || log.action.replace(/_/g, ' ');
+  const entity = (log.entity_type || '').replace(/_/g, ' ');
+
+  if (log.action === 'generated' && log.entity_type === 'invoice' && d.invoice_number) {
+    return `Invoice generated — ${d.invoice_number}`;
+  }
+  if (log.action === 'email_sent' && d.recipient) {
+    return `Invoice email sent to ${d.recipient}`;
+  }
+  if (log.action === 'approval_initiated' && d.quotation_id) {
+    return `Approval initiated — quotation #${d.quotation_id}`;
+  }
+  if (d.invoice_number) return `${base} — ${d.invoice_number}`;
+  if (d.name) return `${base} — ${d.name}`;
+
+  return entity ? `${base} — ${entity}` : base;
+}
+
+function fmtDateTime(d) {
+  if (!d) return '';
+  const date = new Date(d);
+  const day = date.getDate();
+  const month = date.toLocaleString('en-IN', { month: 'short' });
+  const year = date.getFullYear();
+  const time = date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }).toUpperCase();
+  return `${day} ${month} ${year}, ${time}`;
 }
 
 export default function ActivityLogs({ addToast }) {
@@ -58,23 +90,21 @@ export default function ActivityLogs({ addToast }) {
 
   useEffect(() => { load(0); }, [filterType]);
 
-  const FILTER_TYPES = ['', 'rfq', 'quotation', 'approval', 'purchase_order', 'invoice', 'vendor'];
-
   return (
     <div className="space-y-5">
-      <SectionHeader title="Activity Logs" subtitle="Audit trail of all procurement actions" />
+      <SectionHeader title="Activity & Logs" subtitle="Procurement audit trail" />
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-2">
-        {FILTER_TYPES.map(t => (
+      {/* Filter Tabs */}
+      <div className="flex gap-1 bg-slate-800 border border-slate-700/50 rounded-lg p-1 self-start w-fit flex-wrap">
+        {FILTER_TABS.map(t => (
           <button
-            key={t}
-            onClick={() => setFilterType(t)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors capitalize ${
-              filterType === t ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white border border-slate-700'
+            key={t.type}
+            onClick={() => setFilterType(t.type)}
+            className={`px-4 py-1.5 rounded-md text-xs font-medium transition-colors ${
+              filterType === t.type ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'
             }`}
           >
-            {t || 'All'}
+            {t.label}
           </button>
         ))}
       </div>
@@ -83,34 +113,37 @@ export default function ActivityLogs({ addToast }) {
         <Empty icon={Activity} message="No activity logs found" />
       ) : (
         <div className="bg-slate-800 border border-slate-700/50 rounded-xl overflow-hidden">
-          <div className="px-5 py-3 border-b border-slate-700/50 flex items-center justify-between">
+          <div className="px-5 py-3 border-b border-slate-700/50">
             <p className="text-xs text-slate-500">{total} total events</p>
           </div>
 
-          <div className="divide-y divide-slate-700/30">
+          <div>
             {logs.map((log, i) => {
-              const Icon = ENTITY_ICONS[log.entity_type] || Activity;
-              const color = ENTITY_COLORS[log.entity_type] || 'text-slate-400 bg-slate-500/10';
+              const cfg = ENTITY_CFG[log.entity_type] || {
+                icon: Activity,
+                cls: 'text-slate-400 bg-slate-500/10 border-slate-500/20',
+              };
+              const Icon = cfg.icon;
+              const desc = describeActivity(log);
               return (
-                <div key={log.id} className="flex items-start gap-3 px-5 py-3 hover:bg-slate-700/20 transition-colors">
-                  <div className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 mt-0.5 ${color}`}>
-                    <Icon size={13} />
+                <div
+                  key={log.id}
+                  className={`flex items-start gap-4 px-5 py-4 hover:bg-slate-700/10 transition-colors ${
+                    i < logs.length - 1 ? 'border-b border-slate-700/30' : ''
+                  }`}
+                >
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 border ${cfg.cls}`}>
+                    <Icon size={14} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-medium text-white capitalize">{log.action.replace(/_/g, ' ')}</span>
-                      {log.entity_type && (
-                        <span className="text-xs text-slate-500 capitalize">· {log.entity_type.replace(/_/g, ' ')} #{log.entity_id}</span>
-                      )}
-                    </div>
+                    <p className="text-sm text-white">{desc}</p>
                     {log.user_name && (
-                      <p className="text-xs text-slate-500 mt-0.5">by {log.user_name} ({log.user_email})</p>
-                    )}
-                    {log.details && Object.keys(log.details).length > 0 && (
-                      <p className="text-xs text-slate-600 mt-0.5 font-mono truncate">{JSON.stringify(log.details)}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">by {log.user_name}</p>
                     )}
                   </div>
-                  <span className="text-xs text-slate-600 shrink-0 mt-0.5">{timeAgo(log.created_at)}</span>
+                  <span className="text-xs text-slate-500 shrink-0 mt-0.5 whitespace-nowrap">
+                    {fmtDateTime(log.created_at)}
+                  </span>
                 </div>
               );
             })}

@@ -71,6 +71,15 @@ async def procurement_stats(user: dict = Depends(require_roles("admin", "manager
                  (SELECT COUNT(*) FROM purchase_orders WHERE status='issued') as active_pos,
                  (SELECT COUNT(*) FROM invoices WHERE status='paid') as paid_invoices,
                  (SELECT COALESCE(SUM(total),0) FROM invoices WHERE status='paid') as total_paid_amount,
-                 (SELECT COUNT(*) FROM approvals WHERE status='pending') as pending_approvals"""
+                 (SELECT COUNT(*) FROM approvals WHERE status='pending') as pending_approvals,
+                 (SELECT COUNT(*) FROM vendors WHERE status='active') as active_vendors,
+                 (SELECT COALESCE(SUM(total),0) FROM invoices WHERE status != 'cancelled') as total_spend,
+                 (SELECT COUNT(*) FROM invoices
+                  WHERE status NOT IN ('paid','cancelled')
+                  AND created_at < NOW() - INTERVAL '30 days') as overdue_invoices"""
         )
-    return dict(stats)
+    result = dict(stats)
+    total_q = int(result.get('total_quotations') or 0)
+    accepted_q = int(result.get('accepted_quotations') or 0)
+    result['po_fulfillment_pct'] = round((accepted_q / total_q) * 100) if total_q > 0 else 0
+    return result
