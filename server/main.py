@@ -18,6 +18,7 @@ from src.routes.dashboard import router as dashboard_router
 from src.routes.activity import router as activity_router
 from src.routes.reports import router as reports_router
 from src.routes.users import router as users_router
+from src.routes.notifications import router as notifications_router
 
 
 @asynccontextmanager
@@ -48,6 +49,7 @@ app.include_router(dashboard_router)
 app.include_router(activity_router)
 app.include_router(reports_router)
 app.include_router(users_router)
+app.include_router(notifications_router)
 
 
 @app.get("/health")

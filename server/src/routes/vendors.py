@@ -19,6 +19,7 @@ class VendorBody(BaseModel):
     city: Optional[str] = None
     state: Optional[str] = None
     pincode: Optional[str] = None
+    photo_url: Optional[str] = None
 
 
 @router.get("")
@@ -53,10 +54,10 @@ async def create_vendor(body: VendorBody, user: dict = Depends(require_roles("ad
         if existing:
             raise HTTPException(400, "Vendor email already exists")
         row = await conn.fetchrow(
-            """INSERT INTO vendors (name, email, phone, gst_number, category, status, address, city, state, pincode)
-               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *""",
+            """INSERT INTO vendors (name, email, phone, gst_number, category, status, address, city, state, pincode, photo_url)
+               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *""",
             body.name, body.email, body.phone, body.gst_number, body.category,
-            body.status, body.address, body.city, body.state, body.pincode
+            body.status, body.address, body.city, body.state, body.pincode, body.photo_url
         )
         await log_activity(conn, int(user["sub"]), "created", "vendor", row["id"], {"name": body.name})
     return dict(row)
@@ -78,10 +79,10 @@ async def update_vendor(vendor_id: int, body: VendorBody, user: dict = Depends(r
     async with pool.acquire() as conn:
         row = await conn.fetchrow(
             """UPDATE vendors SET name=$1, email=$2, phone=$3, gst_number=$4, category=$5,
-               status=$6, address=$7, city=$8, state=$9, pincode=$10
-               WHERE id=$11 RETURNING *""",
+               status=$6, address=$7, city=$8, state=$9, pincode=$10, photo_url=$11
+               WHERE id=$12 RETURNING *""",
             body.name, body.email, body.phone, body.gst_number, body.category,
-            body.status, body.address, body.city, body.state, body.pincode, vendor_id
+            body.status, body.address, body.city, body.state, body.pincode, body.photo_url, vendor_id
         )
     if not row:
         raise HTTPException(404, "Vendor not found")

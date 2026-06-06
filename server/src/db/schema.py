@@ -111,4 +111,15 @@ CREATE TABLE IF NOT EXISTS activity_logs (
     details JSONB,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+ALTER TABLE vendors ADD COLUMN IF NOT EXISTS photo_url TEXT;
+
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    token TEXT NOT NULL UNIQUE,
+    expires_at TIMESTAMPTZ NOT NULL,
+    used BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
 """
