@@ -2,3 +2,6 @@ fastapi
 uvicorn[standard]
 asyncpg
 python-dotenv
+python-jose[cryptography]
+python-multipart
+email-validator

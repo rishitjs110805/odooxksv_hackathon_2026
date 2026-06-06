@@ -1,6 +1,6 @@
 import asyncpg
-import asyncio
 import os
+from src.db.schema import SCHEMA_SQL
 
 _pool: asyncpg.Pool | None = None
 
@@ -34,7 +34,9 @@ async def get_pool() -> asyncpg.Pool:
             password=os.getenv("POSTGRES_PASSWORD"),
             database=os.getenv("POSTGRES_DB"),
         )
-        print("Connected to PostgreSQL")
+        async with _pool.acquire() as conn:
+            await conn.execute(SCHEMA_SQL)
+        print("Connected to PostgreSQL, schema ready")
     return _pool
 
 
