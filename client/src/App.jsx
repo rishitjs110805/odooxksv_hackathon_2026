@@ -153,10 +153,9 @@ function SectionHeader({ title, subtitle, children }) {
 //  SCREEN 1 — LOGIN
 // ═══════════════════════════════════════════════════════════════════════════
 
-function LoginScreen({ onLogin, onGoToRegister, addToast }) {
+function LoginScreen({ onLogin, onGoToRegister }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('manager');
 
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
@@ -196,29 +195,7 @@ function LoginScreen({ onLogin, onGoToRegister, addToast }) {
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">Role</label>
-              <div className="relative">
-                <Shield size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                <select value={role} onChange={e => setRole(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-800/60 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all appearance-none">
-                  <option value="manager">Manager</option>
-                  <option value="admin">Admin</option>
-                  <option value="vendor">Vendor</option>
-                </select>
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
-                  <ChevronDown size={14} />
-                </div>
-              </div>
-            </div>
-
-            <button onClick={() => {
-                if (!username.trim() || !password.trim()) {
-                  addToast('Missing Credentials', 'Please enter both username and password.', 'error');
-                  return;
-                }
-                onLogin(username, role);
-              }}
+            <button onClick={() => onLogin(username || 'Manav Panchal')}
               className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold transition-all duration-200 shadow-lg shadow-indigo-600/25 mt-2">
               <LogIn size={16} /> Login
             </button>
@@ -319,7 +296,7 @@ function RegistrationScreen({ onRegister, onGoToLogin }) {
               className="w-full px-4 py-2.5 bg-slate-800/60 border border-white/10 rounded-xl text-white text-sm placeholder-slate-500 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all resize-none" />
           </div>
 
-          <button onClick={() => onRegister(form.firstName || 'Manav', form.lastName || 'Panchal', form.role)}
+          <button onClick={() => onRegister(form.firstName || 'Manav', form.lastName || 'Panchal')}
             className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold transition-all duration-200 shadow-lg shadow-indigo-600/25 mt-6">
             <UserPlus size={16} /> Create Account
           </button>
@@ -341,7 +318,7 @@ function RegistrationScreen({ onRegister, onGoToLogin }) {
 //  SCREEN 3 — DASHBOARD
 // ═══════════════════════════════════════════════════════════════════════════
 
-function Dashboard({ userName, userRole, vendors, rfqs, pos, activities, setActiveView, addToast }) {
+function Dashboard({ userName, vendors, rfqs, pos, activities, setActiveView, addToast }) {
   const activeRFQs = rfqs.filter(r => r.status === 'Open').length;
   const pendingApprovals = pos.filter(po => po.status === 'Pending Approval').length;
   const totalSpend = pos.filter(po => po.status === 'Approved').reduce((sum, po) => sum + po.amount, 0);
@@ -350,35 +327,25 @@ function Dashboard({ userName, userRole, vendors, rfqs, pos, activities, setActi
 
   return (
     <div className="space-y-8">
-      <SectionHeader title={`Welcome, ${userName}`} subtitle={`${userRole.charAt(0).toUpperCase() + userRole.slice(1)} — Today's Overview`}>
-        <button onClick={() => setActiveView('rfqs')} className="flex items-center gap-2 px-5 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold transition-all duration-200 shadow-lg shadow-indigo-600/20">
-          <Plus size={16} /> New RFQ
-        </button>
-        <button onClick={() => setActiveView('vendors')} className="flex items-center gap-2 px-5 py-3 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-xl text-sm font-semibold transition-all duration-200">
-          <UserPlus size={16} /> Add Vendor
-        </button>
-        <button onClick={() => setActiveView('reports')} className="flex items-center gap-2 px-5 py-3 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-xl text-sm font-semibold transition-all duration-200">
-          <BarChart3 size={16} /> View Analytics
-        </button>
-      </SectionHeader>
+      <SectionHeader title={`Welcome, ${userName}`} subtitle="Officer — Today's Overview" />
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {[
-          { label: 'Active RFQs', value: activeRFQs, icon: FileText, color: 'indigo', change: '+3 this week', view: 'rfqs' },
-          { label: 'Pending Approvals', value: pendingApprovals, icon: Clock, color: 'amber', change: '2 urgent', view: 'approvals' },
-          { label: 'Total Spend', value: `₹${(totalSpend / 100000).toFixed(2)}L`, icon: DollarSign, color: 'emerald', change: '+12% vs last month', view: 'reports' },
-          { label: 'Total Vendors', value: vendors.length, icon: Users, color: 'blue', change: `${vendors.filter(v => v.status === 'Active').length} active`, view: 'vendors' },
-        ].map(({ label, value, icon: Icon, color, change, view }) => {
+          { label: 'Active RFQs', value: activeRFQs, icon: FileText, color: 'indigo', change: '+3 this week' },
+          { label: 'Pending Approvals', value: pendingApprovals, icon: Clock, color: 'amber', change: '2 urgent' },
+          { label: 'Total Spend', value: `₹${(totalSpend / 100).toFixed(1)}L`, icon: DollarSign, color: 'emerald', change: '+12% vs last month' },
+          { label: 'Total Vendors', value: vendors.length, icon: Users, color: 'blue', change: `${vendors.filter(v => v.status === 'Active').length} active` },
+        ].map(({ label, value, icon: Icon, color, change }) => {
           const colorMap = {
-            indigo: 'from-indigo-600/20 to-indigo-600/5 border-indigo-500/20 hover:border-indigo-500/40',
-            emerald: 'from-emerald-600/20 to-emerald-600/5 border-emerald-500/20 hover:border-emerald-500/40',
-            amber: 'from-amber-600/20 to-amber-600/5 border-amber-500/20 hover:border-amber-500/40',
-            blue: 'from-blue-600/20 to-blue-600/5 border-blue-500/20 hover:border-blue-500/40',
+            indigo: 'from-indigo-600/20 to-indigo-600/5 border-indigo-500/20',
+            emerald: 'from-emerald-600/20 to-emerald-600/5 border-emerald-500/20',
+            amber: 'from-amber-600/20 to-amber-600/5 border-amber-500/20',
+            blue: 'from-blue-600/20 to-blue-600/5 border-blue-500/20',
           };
           const iconColor = { indigo: 'text-indigo-400', emerald: 'text-emerald-400', amber: 'text-amber-400', blue: 'text-blue-400' };
           return (
-            <div key={label} onClick={() => view && setActiveView(view)} className={`bg-gradient-to-br ${colorMap[color]} border rounded-2xl p-6 hover:-translate-y-1 transition-all duration-300 ${view ? 'cursor-pointer shadow-lg hover:shadow-xl' : 'cursor-default'} group`}>
+            <div key={label} className={`bg-gradient-to-br ${colorMap[color]} border rounded-2xl p-6 hover:-translate-y-1 transition-all duration-300 cursor-default group`}>
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm text-slate-400 font-medium">{label}</p>
@@ -423,6 +390,18 @@ function Dashboard({ userName, userRole, vendors, rfqs, pos, activities, setActi
         </div>
       </div>
 
+      {/* Quick Actions */}
+      <div className="flex flex-wrap gap-4">
+        <button onClick={() => setActiveView('rfqs')} className="flex items-center gap-2 px-5 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold transition-all duration-200 shadow-lg shadow-indigo-600/20">
+          <Plus size={16} /> New RFQ
+        </button>
+        <button onClick={() => setActiveView('vendors')} className="flex items-center gap-2 px-5 py-3 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-xl text-sm font-semibold transition-all duration-200">
+          <UserPlus size={16} /> Add Vendor
+        </button>
+        <button onClick={() => setActiveView('reports')} className="flex items-center gap-2 px-5 py-3 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-xl text-sm font-semibold transition-all duration-200">
+          <BarChart3 size={16} /> View Analytics
+        </button>
+      </div>
     </div>
   );
 }
@@ -1263,8 +1242,7 @@ function ActivityLogsPage({ activities }) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 function ReportsPage({ vendors, pos }) {
-  const [activeTab, setActiveTab] = useState('key-details');
-  const totalSpend = pos.filter(po => po.status === 'Approved').reduce((s, po) => s + po.amount, 0);
+  const totalSpend = pos.reduce((s, po) => s + po.amount, 0);
   const approvedPct = pos.length > 0 ? Math.round((pos.filter(p => p.status === 'Approved').length / pos.length) * 100) : 0;
 
   const categories = [
@@ -1290,13 +1268,11 @@ function ReportsPage({ vendors, pos }) {
     <div className="space-y-8">
       <SectionHeader title="Reports & Analytics" subtitle={`Procurement Insights — ${new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}`}>
         <div className="flex gap-2">
-          <button onClick={() => setActiveTab('key-details')} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${activeTab === 'key-details' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'}`}>Key Details</button>
-          <button onClick={() => setActiveTab('report')} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${activeTab === 'report' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'}`}>Report</button>
+          <button className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-xl text-sm font-medium transition-all">Key Details</button>
+          <button className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-xl text-sm font-medium transition-all">Report</button>
         </div>
       </SectionHeader>
 
-      {activeTab === 'key-details' && (
-        <>
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-5">
@@ -1365,13 +1341,9 @@ function ReportsPage({ vendors, pos }) {
             </table>
           </div>
         </div>
-      </div>
-      </>
-    )}
-      {activeTab === 'report' && (
-        <div className="grid grid-cols-1 gap-6">
+
         {/* Monthly Trends Chart */}
-        <div className="bg-slate-800/40 border border-white/5 rounded-2xl p-6">
+        <div className="lg:col-span-2 bg-slate-800/40 border border-white/5 rounded-2xl p-6">
           <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-6">Monthly Trends</h2>
           <div className="flex items-end justify-between gap-4 h-48 px-4">
             {months.map(m => (
@@ -1385,8 +1357,7 @@ function ReportsPage({ vendors, pos }) {
             ))}
           </div>
         </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -1408,7 +1379,7 @@ const NAV_ITEMS = [
   { id: 'activity', label: 'Activity', icon: Activity },
 ];
 
-function Sidebar({ activeView, setActiveView, userName, userRole }) {
+function Sidebar({ activeView, setActiveView, userName }) {
   return (
     <aside className="w-64 bg-slate-900/80 border-r border-white/5 flex flex-col shrink-0 backdrop-blur-sm">
       {/* Branding */}
@@ -1444,7 +1415,7 @@ function Sidebar({ activeView, setActiveView, userName, userRole }) {
           </div>
           <div className="min-w-0">
             <p className="text-sm font-medium text-white truncate">{userName}</p>
-            <p className="text-xs text-slate-500 capitalize">{userRole}</p>
+            <p className="text-xs text-slate-500">Officer</p>
           </div>
         </div>
       </div>
@@ -1461,7 +1432,6 @@ export default function App() {
   // Auth state
   const [authScreen, setAuthScreen] = useState('login'); // 'login' | 'register' | null
   const [userName, setUserName] = useState('');
-  const [userRole, setUserRole] = useState('officer');
 
   // App state
   const [activeView, setActiveView] = useState('dashboard');
@@ -1486,16 +1456,14 @@ export default function App() {
     setToasts(prev => prev.filter(t => t.id !== id));
   }, []);
 
-  const handleLogin = (name, role = 'manager') => {
+  const handleLogin = (name) => {
     setUserName(name);
-    setUserRole(role);
     setAuthScreen(null);
-    addToast('Welcome Back', `Signed in as ${name} (${role})`, 'success');
+    addToast('Welcome Back', `Signed in as ${name}`, 'success');
   };
 
-  const handleRegister = (first, last, role = 'officer') => {
+  const handleRegister = (first, last) => {
     setUserName(`${first} ${last}`);
-    setUserRole(role);
     setAuthScreen(null);
     addToast('Account Created', `Welcome to VendorBridge, ${first}!`, 'success');
   };
@@ -1506,7 +1474,7 @@ export default function App() {
       <>
         <style>{`@keyframes slideIn { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: translateX(0); } }`}</style>
         <Toast toasts={toasts} removeToast={removeToast} />
-        <LoginScreen onLogin={handleLogin} onGoToRegister={() => setAuthScreen('register')} addToast={addToast} />
+        <LoginScreen onLogin={handleLogin} onGoToRegister={() => setAuthScreen('register')} />
       </>
     );
   }
@@ -1524,7 +1492,7 @@ export default function App() {
   // ── MAIN APP ──
   const renderView = () => {
     switch (activeView) {
-      case 'dashboard': return <Dashboard userName={userName} userRole={userRole} vendors={vendors} rfqs={rfqs} pos={pos} activities={activities} setActiveView={setActiveView} addToast={addToast} />;
+      case 'dashboard': return <Dashboard userName={userName} vendors={vendors} rfqs={rfqs} pos={pos} activities={activities} setActiveView={setActiveView} addToast={addToast} />;
       case 'vendors': return <VendorsPage vendors={vendors} setVendors={setVendors} addToast={addToast} />;
       case 'rfqs': return <RFQManager rfqs={rfqs} setRfqs={setRfqs} vendors={vendors} addToast={addToast} />;
       case 'quotations': return <QuotationsPage quotations={quotations} setQuotations={setQuotations} rfqs={rfqs} setRfqs={setRfqs} setPOs={setPOs} pos={pos} vendors={vendors} addToast={addToast} />;
@@ -1533,7 +1501,7 @@ export default function App() {
       case 'invoices': return <InvoicesPage invoices={invoices} addToast={addToast} />;
       case 'reports': return <ReportsPage vendors={vendors} pos={pos} />;
       case 'activity': return <ActivityLogsPage activities={activities} />;
-      default: return <Dashboard userName={userName} userRole={userRole} vendors={vendors} rfqs={rfqs} pos={pos} activities={activities} setActiveView={setActiveView} addToast={addToast} />;
+      default: return <Dashboard userName={userName} vendors={vendors} rfqs={rfqs} pos={pos} activities={activities} setActiveView={setActiveView} addToast={addToast} />;
     }
   };
 
@@ -1541,7 +1509,7 @@ export default function App() {
     <div className="flex h-screen bg-slate-950 text-white overflow-hidden">
       <style>{`@keyframes slideIn { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: translateX(0); } }`}</style>
       <Toast toasts={toasts} removeToast={removeToast} />
-      <Sidebar activeView={activeView} setActiveView={setActiveView} userName={userName} userRole={userRole} />
+      <Sidebar activeView={activeView} setActiveView={setActiveView} userName={userName} />
       <main className="flex-1 overflow-y-auto">
         <div className="p-8 max-w-[1400px] mx-auto">{renderView()}</div>
       </main>
