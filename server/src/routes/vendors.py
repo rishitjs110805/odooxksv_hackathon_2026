@@ -33,7 +33,7 @@ async def list_vendors(
     async with pool.acquire() as conn:
         filters, params, idx = [], [], 1
         if search:
-            filters.append(f"(name ILIKE ${idx} OR email ILIKE ${idx})")
+            filters.append(f"(name ILIKE ${idx} OR email ILIKE ${idx} OR gst_number ILIKE ${idx} OR category ILIKE ${idx})")
             params.append(f"%{search}%"); idx += 1
         if category:
             filters.append(f"category = ${idx}")

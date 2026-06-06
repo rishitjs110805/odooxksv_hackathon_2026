@@ -19,7 +19,9 @@ class RFQItem(BaseModel):
 class RFQBody(BaseModel):
     title: str
     description: Optional[str] = None
+    category: Optional[str] = None
     deadline: date
+    status: str = 'open'
     vendor_ids: List[int] = []
     items: List[RFQItem] = []
 
@@ -52,12 +54,15 @@ async def list_rfqs(
 
 @router.post("")
 async def create_rfq(body: RFQBody, user: dict = Depends(require_roles("admin", "procurement_officer"))):
+    if body.status not in ("draft", "open"):
+        raise HTTPException(400, "Status must be 'draft' or 'open'")
     pool = await get_pool()
     async with pool.acquire() as conn:
         async with conn.transaction():
             rfq = await conn.fetchrow(
-                "INSERT INTO rfqs (title, description, deadline, status, created_by) VALUES ($1,$2,$3,'open',$4) RETURNING *",
-                body.title, body.description, body.deadline, int(user["sub"])
+                """INSERT INTO rfqs (title, description, category, deadline, status, created_by)
+                   VALUES ($1,$2,$3,$4,$5,$6) RETURNING *""",
+                body.title, body.description, body.category, body.deadline, body.status, int(user["sub"])
             )
             rfq_id = rfq["id"]
             for item in body.items:
@@ -70,7 +75,7 @@ async def create_rfq(body: RFQBody, user: dict = Depends(require_roles("admin", 
                     "INSERT INTO rfq_vendors (rfq_id, vendor_id) VALUES ($1,$2) ON CONFLICT DO NOTHING",
                     rfq_id, vid
                 )
-            await log_activity(conn, int(user["sub"]), "created", "rfq", rfq_id, {"title": body.title})
+            await log_activity(conn, int(user["sub"]), "created", "rfq", rfq_id, {"title": body.title, "status": body.status})
     return dict(rfq)
 
 
