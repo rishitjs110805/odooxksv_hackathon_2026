@@ -81,6 +81,7 @@ async def get_invoice(invoice_id: int, user: dict = Depends(get_current_user)):
     async with pool.acquire() as conn:
         row = await conn.fetchrow(
             """SELECT i.*, po.po_number, po.delivery_date, po.status as po_status,
+                      po.quotation_id,
                       v.name as vendor_name, v.email as vendor_email, v.gst_number, v.address,
                       v.city, v.state, v.pincode,
                       r.title as rfq_title, q.delivery_days
@@ -92,9 +93,19 @@ async def get_invoice(invoice_id: int, user: dict = Depends(get_current_user)):
                WHERE i.id=$1""",
             invoice_id
         )
-    if not row:
-        raise HTTPException(404, "Invoice not found")
-    return dict(row)
+        if not row:
+            raise HTTPException(404, "Invoice not found")
+        items = await conn.fetch(
+            """SELECT qi.unit_price, qi.total_price, ri.product_name, ri.quantity, ri.unit
+               FROM quotation_items qi
+               JOIN rfq_items ri ON ri.id=qi.rfq_item_id
+               WHERE qi.quotation_id=$1
+               ORDER BY ri.id""",
+            row["quotation_id"]
+        )
+    result = dict(row)
+    result["items"] = [dict(i) for i in items]
+    return result
 
 
 @router.patch("/{invoice_id}/status")
