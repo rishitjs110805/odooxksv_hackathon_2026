@@ -39,17 +39,24 @@ async def create_approval(body: ApprovalBody, user: dict = Depends(require_roles
 async def list_approvals(user: dict = Depends(get_current_user)):
     pool = await get_pool()
     async with pool.acquire() as conn:
-        rows = await conn.fetch(
-            """SELECT a.*, q.rfq_id, q.total_amount, q.vendor_id, q.delivery_days,
-                      v.name as vendor_name, r.title as rfq_title,
-                      u.name as approver_name
-               FROM approvals a
-               JOIN quotations q ON q.id=a.quotation_id
-               JOIN vendors v ON v.id=q.vendor_id
-               JOIN rfqs r ON r.id=q.rfq_id
-               LEFT JOIN users u ON u.id=a.approver_id
-               ORDER BY a.created_at DESC"""
-        )
+        base_query = """SELECT a.*, q.rfq_id, q.total_amount, q.vendor_id, q.delivery_days,
+                          v.name as vendor_name, r.title as rfq_title,
+                          u.name as approver_name
+                   FROM approvals a
+                   JOIN quotations q ON q.id=a.quotation_id
+                   JOIN vendors v ON v.id=q.vendor_id
+                   JOIN rfqs r ON r.id=q.rfq_id
+                   LEFT JOIN users u ON u.id=a.approver_id"""
+        if user["role"] == "vendor":
+            vendor = await conn.fetchrow("SELECT id FROM vendors WHERE user_id=$1", int(user["sub"]))
+            if not vendor:
+                return []
+            rows = await conn.fetch(
+                base_query + " WHERE q.vendor_id=$1 ORDER BY a.created_at DESC",
+                vendor["id"]
+            )
+        else:
+            rows = await conn.fetch(base_query + " ORDER BY a.created_at DESC")
     return [dict(r) for r in rows]
 
 

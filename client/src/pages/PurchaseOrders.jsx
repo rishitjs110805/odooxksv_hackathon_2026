@@ -140,7 +140,7 @@ export default function PurchaseOrders({ user, addToast, setActiveView }) {
                       <p className="text-xs text-slate-500">Total Amount</p>
                       <p className="text-white font-semibold">{fmt(expandedDetail.total_amount)}</p>
                     </div>
-                    {expandedDetail.vendor_gst_number && (
+                    {expandedDetail.gst_number && (
                       <div>
                         <p className="text-xs text-slate-500">GST</p>
                         <p className="text-slate-400 font-mono text-xs">{expandedDetail.gst_number}</p>

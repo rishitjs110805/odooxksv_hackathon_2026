@@ -42,6 +42,7 @@ export const api = {
   // vendors
   getVendors: (params = {}) => get('/vendors?' + new URLSearchParams(params)),
   createVendor: (data) => post('/vendors', data),
+  getVendorMe: () => get('/vendors/me'),
   getVendor: (id) => get(`/vendors/${id}`),
   updateVendor: (id, data) => put(`/vendors/${id}`, data),
   deleteVendor: (id) => del(`/vendors/${id}`),

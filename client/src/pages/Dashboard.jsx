@@ -10,8 +10,8 @@ function SpendingChart({ months }) {
   if (!months.length) {
     return (
       <div className="flex flex-col items-center justify-center h-32">
-        <TrendingUp size={22} className="text-slate-600 mb-2" />
-        <p className="text-xs text-slate-500">No spending data yet</p>
+        <TrendingUp size={22} className="text-gray-300 dark:text-slate-600 mb-2" />
+        <p className="text-xs text-gray-400 dark:text-slate-500">No spending data yet</p>
       </div>
     );
   }
@@ -26,11 +26,11 @@ function SpendingChart({ months }) {
             <div className="w-full flex flex-col justify-end" style={{ height: '84px' }}>
               <div
                 title={fmt(m.total_spend)}
-                className="w-full rounded-t bg-indigo-500/60 hover:bg-indigo-500 transition-colors cursor-default"
+                className="w-full rounded-t bg-blue-400/60 dark:bg-indigo-500/60 hover:bg-blue-500 dark:hover:bg-indigo-500 transition-colors cursor-default"
                 style={{ height: `${Math.max(pct, 4)}%` }}
               />
             </div>
-            <span className="text-[10px] text-slate-500 truncate">{label}</span>
+            <span className="text-[10px] text-gray-400 dark:text-slate-500 truncate">{label}</span>
           </div>
         );
       })}
@@ -104,10 +104,21 @@ export default function Dashboard({ user, setActiveView, addToast }) {
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Active RFQs"       value={s.active_rfqs ?? 0}           icon={FileText}     color="blue"    />
-        <StatCard label="Pending Approvals" value={s.pending_approvals ?? 0}     icon={Clock}        color="amber"   />
-        <StatCard label="POs This Month"    value={fmt(s.pos_this_month_amount)} icon={ShoppingCart} color="emerald" />
-        <StatCard label="Pending Invoices"  value={s.pending_invoices ?? 0}      icon={AlertCircle}  color="red"     />
+        {data?.is_vendor ? (
+          <>
+            <StatCard label="RFQ Invitations"  value={s.active_rfqs ?? 0}        icon={FileText}     color="blue"    />
+            <StatCard label="Submitted Quotes" value={s.pending_approvals ?? 0}  icon={Clock}        color="amber"   />
+            <StatCard label="Active Orders"    value={s.my_active_pos ?? 0}      icon={ShoppingCart} color="emerald" />
+            <StatCard label="Pending Invoices" value={s.pending_invoices ?? 0}   icon={AlertCircle}  color="red"     />
+          </>
+        ) : (
+          <>
+            <StatCard label="Active RFQs"       value={s.active_rfqs ?? 0}           icon={FileText}     color="blue"    />
+            <StatCard label="Pending Approvals" value={s.pending_approvals ?? 0}     icon={Clock}        color="amber"   />
+            <StatCard label="POs This Month"    value={fmt(s.pos_this_month_amount)} icon={ShoppingCart} color="emerald" />
+            <StatCard label="Pending Invoices"  value={s.pending_invoices ?? 0}      icon={AlertCircle}  color="red"     />
+          </>
+        )}
       </div>
 
       {isApprover && (
@@ -140,12 +151,12 @@ export default function Dashboard({ user, setActiveView, addToast }) {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
-        <div className="lg:col-span-3 bg-slate-800 border border-slate-700/50 rounded-xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-700/50 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-white">Recent Purchase Orders</h3>
+        <div className="lg:col-span-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700/50 rounded-xl overflow-hidden shadow-sm dark:shadow-none">
+          <div className="px-5 py-4 border-b border-gray-100 dark:border-slate-700/50 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Recent Purchase Orders</h3>
             <button
               onClick={() => setActiveView('purchase-orders')}
-              className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+              className="text-xs text-blue-600 dark:text-indigo-400 hover:text-blue-800 dark:hover:text-indigo-300 transition-colors"
             >
               View all →
             </button>
@@ -154,19 +165,19 @@ export default function Dashboard({ user, setActiveView, addToast }) {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-slate-700/30">
-                    <th className="text-left text-xs font-medium text-slate-500 px-4 py-2.5 uppercase tracking-wide">PO #</th>
-                    <th className="text-left text-xs font-medium text-slate-500 px-4 py-2.5 uppercase tracking-wide">Vendor</th>
-                    <th className="text-right text-xs font-medium text-slate-500 px-4 py-2.5 uppercase tracking-wide">Amount</th>
-                    <th className="text-left text-xs font-medium text-slate-500 px-4 py-2.5 uppercase tracking-wide">Status</th>
+                  <tr className="border-b border-gray-100 dark:border-slate-700/30">
+                    <th className="text-left text-xs font-medium text-gray-500 dark:text-slate-500 px-4 py-2.5 uppercase tracking-wide">PO #</th>
+                    <th className="text-left text-xs font-medium text-gray-500 dark:text-slate-500 px-4 py-2.5 uppercase tracking-wide">Vendor</th>
+                    <th className="text-right text-xs font-medium text-gray-500 dark:text-slate-500 px-4 py-2.5 uppercase tracking-wide">Amount</th>
+                    <th className="text-left text-xs font-medium text-gray-500 dark:text-slate-500 px-4 py-2.5 uppercase tracking-wide">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-700/20">
+                <tbody className="divide-y divide-gray-50 dark:divide-slate-700/20">
                   {data.recent_pos.map(po => (
-                    <tr key={po.id} className="hover:bg-slate-700/10 transition-colors">
-                      <td className="px-4 py-3 text-xs font-mono text-slate-400">{po.po_number}</td>
-                      <td className="px-4 py-3 text-sm text-white">{po.vendor_name}</td>
-                      <td className="px-4 py-3 text-sm text-right font-semibold text-white">{fmt(po.total_amount)}</td>
+                    <tr key={po.id} className="hover:bg-gray-50 dark:hover:bg-slate-700/10 transition-colors">
+                      <td className="px-4 py-3 text-xs font-mono text-gray-500 dark:text-slate-400">{po.po_number}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">{po.vendor_name}</td>
+                      <td className="px-4 py-3 text-sm text-right font-semibold text-gray-900 dark:text-white">{fmt(po.total_amount)}</td>
                       <td className="px-4 py-3"><StatusBadge status={po.status} /></td>
                     </tr>
                   ))}
@@ -174,14 +185,14 @@ export default function Dashboard({ user, setActiveView, addToast }) {
               </table>
             </div>
           ) : (
-            <p className="px-5 py-8 text-center text-sm text-slate-500">No purchase orders yet</p>
+            <p className="px-5 py-8 text-center text-sm text-gray-400 dark:text-slate-500">No purchase orders yet</p>
           )}
         </div>
 
-        <div className="lg:col-span-2 bg-slate-800 border border-slate-700/50 rounded-xl">
-          <div className="px-5 py-4 border-b border-slate-700/50 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-white">Spending Trends</h3>
-            <span className="text-xs text-slate-500">Last 6 months</span>
+        <div className="lg:col-span-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700/50 rounded-xl shadow-sm dark:shadow-none">
+          <div className="px-5 py-4 border-b border-gray-100 dark:border-slate-700/50 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Spending Trends</h3>
+            <span className="text-xs text-gray-400 dark:text-slate-500">Last 6 months</span>
           </div>
           <div className="px-5 py-5">
             <SpendingChart months={months} />
@@ -191,7 +202,7 @@ export default function Dashboard({ user, setActiveView, addToast }) {
 
       {user?.role !== 'vendor' && (
         <div>
-          <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-3">Quick Actions</p>
+          <p className="text-xs font-medium text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-3">Quick Actions</p>
           <div className="flex flex-wrap gap-2">
             {!isApprover && (
               <>

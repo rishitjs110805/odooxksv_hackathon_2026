@@ -63,6 +63,20 @@ async def signup(body: SignupBody):
             "INSERT INTO users (email, password_hash, name, role) VALUES ($1,$2,$3,$4) RETURNING id",
             body.email, hash_password(body.password), body.name, body.role
         )
+        if body.role == "vendor":
+            # Link to existing vendor record created by admin (matched by email)
+            updated = await conn.fetchval(
+                "UPDATE vendors SET user_id=$1 WHERE email=$2 AND user_id IS NULL RETURNING id",
+                user_id, body.email
+            )
+            if not updated:
+                # No existing vendor record — create a minimal one so vendor can operate immediately
+                vendor_exists = await conn.fetchval("SELECT id FROM vendors WHERE email=$1", body.email)
+                if not vendor_exists:
+                    await conn.execute(
+                        "INSERT INTO vendors (name, email, status, user_id) VALUES ($1, $2, 'active', $3)",
+                        body.name, body.email, user_id
+                    )
     token = create_access_token({"sub": str(user_id), "email": body.email, "role": body.role, "name": body.name})
     return {"access_token": token, "token_type": "bearer"}
 

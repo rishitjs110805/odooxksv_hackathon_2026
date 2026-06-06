@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Search, Plus, Phone, X } from 'lucide-react';
+import { Search, Plus, Phone } from 'lucide-react';
 import { api } from '../services/api';
 import { PageLoader, SectionHeader, Btn, Input, Textarea, Modal, VendorAvatar, Empty } from '../components/ui';
 
@@ -18,13 +18,13 @@ const TABS = [
 ];
 
 const STATUS_CFG = {
-  active:      { label: 'Active',  cls: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25' },
-  inactive:    { label: 'Pending', cls: 'bg-amber-500/10 text-amber-400 border-amber-500/25' },
-  blacklisted: { label: 'Blocked', cls: 'bg-red-500/10 text-red-400 border-red-500/25' },
+  active:      { label: 'Active',  cls: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/25' },
+  inactive:    { label: 'Pending', cls: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/25' },
+  blacklisted: { label: 'Blocked', cls: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/25' },
 };
 
 function VendorStatusBadge({ status }) {
-  const cfg = STATUS_CFG[status] || { label: status, cls: 'bg-slate-500/10 text-slate-400 border-slate-500/25' };
+  const cfg = STATUS_CFG[status] || { label: status, cls: 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-slate-500/10 dark:text-slate-400 dark:border-slate-500/25' };
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium border ${cfg.cls}`}>
       {cfg.label}
@@ -125,14 +125,16 @@ export default function Vendors({ user, addToast }) {
     }
   };
 
+  const selectCls = "w-full px-3 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-indigo-500";
+
   const formFields = (
     <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
       {form.photo_url && (
-        <div className="flex items-center gap-3 p-3 bg-slate-900 rounded-lg">
+        <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-900 rounded-lg">
           <img src={form.photo_url} alt="logo"
-            className="w-12 h-12 rounded-lg object-cover border border-slate-700"
+            className="w-12 h-12 rounded-lg object-cover border border-gray-200 dark:border-slate-700"
             onError={e => { e.currentTarget.style.display = 'none'; }} />
-          <span className="text-xs text-slate-400">Company logo</span>
+          <span className="text-xs text-gray-500 dark:text-slate-400">Company logo</span>
         </div>
       )}
       <Input label="Logo URL" type="url" value={form.photo_url} onChange={e => set('photo_url', e.target.value)} placeholder="https://..." />
@@ -142,25 +144,23 @@ export default function Vendors({ user, addToast }) {
         </div>
         <Input label="Email *" type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="vendor@company.com" />
         <div>
-          <label className="block text-xs font-medium text-slate-400 mb-1.5">Phone</label>
+          <label className="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">Phone</label>
           <div className="relative">
-            <Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+            <Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500" />
             <input type="tel" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="+91 98765 43210"
-              className="w-full pl-9 pr-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500" />
+              className="w-full pl-9 pr-3 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-sm text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500 dark:focus:border-indigo-500" />
           </div>
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-400 mb-1.5">Category</label>
-          <select value={form.category} onChange={e => set('category', e.target.value)}
-            className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
+          <label className="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">Category</label>
+          <select value={form.category} onChange={e => set('category', e.target.value)} className={selectCls}>
             <option value="">Select category</option>
             {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-400 mb-1.5">Status</label>
-          <select value={form.status} onChange={e => set('status', e.target.value)}
-            className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
+          <label className="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">Status</label>
+          <select value={form.status} onChange={e => set('status', e.target.value)} className={selectCls}>
             <option value="active">Active</option>
             <option value="inactive">Pending</option>
             <option value="blacklisted">Blocked</option>
@@ -184,13 +184,13 @@ export default function Vendors({ user, addToast }) {
       </SectionHeader>
 
       <div className="relative">
-        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 pointer-events-none" />
         <input
           type="text"
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search by name, GST number, category..."
-          className="w-full pl-9 pr-3 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+          className="w-full pl-9 pr-3 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-sm text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500 dark:focus:border-indigo-500"
         />
       </div>
 
@@ -201,8 +201,8 @@ export default function Vendors({ user, addToast }) {
             onClick={() => setActiveTab(t.key)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               activeTab === t.key
-                ? 'bg-indigo-600 text-white'
-                : 'bg-slate-800 text-slate-400 hover:text-white border border-slate-700'
+                ? 'bg-blue-600 dark:bg-indigo-600 text-white'
+                : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white border border-gray-200 dark:border-slate-700'
             }`}
           >
             {t.label} ({counts[t.key]})
@@ -215,34 +215,34 @@ export default function Vendors({ user, addToast }) {
           action={canEdit && <Btn variant="primary" size="sm" onClick={openCreate}><Plus size={13} /> Add Vendor</Btn>}
         />
       ) : (
-        <div className="bg-slate-800 border border-slate-700/50 rounded-xl overflow-hidden">
+        <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700/50 rounded-xl overflow-hidden shadow-sm dark:shadow-none">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-slate-700/50 bg-slate-800/80">
-                  <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 uppercase tracking-wide">Vendor Name</th>
-                  <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 uppercase tracking-wide">Category</th>
-                  <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 uppercase tracking-wide">GST No.</th>
-                  <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 uppercase tracking-wide">Contact No.</th>
-                  <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 uppercase tracking-wide">Status</th>
-                  <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 uppercase tracking-wide">Action</th>
+                <tr className="border-b border-gray-100 dark:border-slate-700/50 bg-gray-50 dark:bg-slate-800/80">
+                  <th className="text-left text-xs font-medium text-gray-500 dark:text-slate-500 px-4 py-3 uppercase tracking-wide">Vendor Name</th>
+                  <th className="text-left text-xs font-medium text-gray-500 dark:text-slate-500 px-4 py-3 uppercase tracking-wide">Category</th>
+                  <th className="text-left text-xs font-medium text-gray-500 dark:text-slate-500 px-4 py-3 uppercase tracking-wide">GST No.</th>
+                  <th className="text-left text-xs font-medium text-gray-500 dark:text-slate-500 px-4 py-3 uppercase tracking-wide">Contact No.</th>
+                  <th className="text-left text-xs font-medium text-gray-500 dark:text-slate-500 px-4 py-3 uppercase tracking-wide">Status</th>
+                  <th className="text-left text-xs font-medium text-gray-500 dark:text-slate-500 px-4 py-3 uppercase tracking-wide">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-700/20">
+              <tbody className="divide-y divide-gray-50 dark:divide-slate-700/20">
                 {displayed.map(v => (
-                  <tr key={v.id} className="hover:bg-slate-700/10 transition-colors">
+                  <tr key={v.id} className="hover:bg-gray-50 dark:hover:bg-slate-700/10 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2.5">
                         <VendorAvatar vendor={v} size="sm" />
                         <div>
-                          <p className="text-sm font-medium text-white">{v.name}</p>
-                          <p className="text-xs text-slate-500">{v.email}</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">{v.name}</p>
+                          <p className="text-xs text-gray-500 dark:text-slate-500">{v.email}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-sm text-slate-300">{v.category || '—'}</td>
-                    <td className="px-4 py-3 text-xs font-mono text-slate-400">{v.gst_number || '—'}</td>
-                    <td className="px-4 py-3 text-sm text-slate-300">{v.phone || '—'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-slate-300">{v.category || '—'}</td>
+                    <td className="px-4 py-3 text-xs font-mono text-gray-500 dark:text-slate-400">{v.gst_number || '—'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-slate-300">{v.phone || '—'}</td>
                     <td className="px-4 py-3"><VendorStatusBadge status={v.status} /></td>
                     <td className="px-4 py-3">
                       <Btn variant="secondary" size="sm" onClick={() => openView(v)}>View</Btn>
@@ -279,11 +279,11 @@ export default function Vendors({ user, addToast }) {
         >
           {canEdit ? formFields : (
             <div className="space-y-3 max-h-[60vh] overflow-y-auto">
-              <div className="flex items-center gap-3 p-4 bg-slate-900 rounded-lg">
+              <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-slate-900 rounded-lg">
                 <VendorAvatar vendor={selected} size="lg" />
                 <div>
-                  <p className="font-semibold text-white">{selected.name}</p>
-                  <p className="text-xs text-slate-400">{selected.email}</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">{selected.name}</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">{selected.email}</p>
                   <VendorStatusBadge status={selected.status} />
                 </div>
               </div>
@@ -294,8 +294,8 @@ export default function Vendors({ user, addToast }) {
                 ['Address', [selected.address, selected.city, selected.state, selected.pincode].filter(Boolean).join(', ')],
               ].map(([label, val]) => val ? (
                 <div key={label} className="flex items-start gap-3 text-sm">
-                  <span className="text-slate-500 w-28 shrink-0">{label}</span>
-                  <span className="text-slate-200">{val}</span>
+                  <span className="text-gray-500 dark:text-slate-500 w-28 shrink-0">{label}</span>
+                  <span className="text-gray-800 dark:text-slate-200">{val}</span>
                 </div>
               ) : null)}
             </div>
@@ -325,8 +325,8 @@ export default function Vendors({ user, addToast }) {
             <Btn variant="danger" onClick={handleDelete} disabled={saving}>{saving ? 'Deleting…' : 'Delete'}</Btn>
           </>}
         >
-          <p className="text-slate-300 text-sm">
-            Delete <span className="font-semibold text-white">{selected.name}</span>? This cannot be undone.
+          <p className="text-gray-700 dark:text-slate-300 text-sm">
+            Delete <span className="font-semibold text-gray-900 dark:text-white">{selected.name}</span>? This cannot be undone.
           </p>
         </Modal>
       )}

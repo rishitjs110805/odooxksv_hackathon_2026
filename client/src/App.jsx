@@ -2,6 +2,18 @@ import { useState, useCallback, useEffect } from 'react';
 import { api, setToken, clearToken, getToken } from './services/api';
 import { Toast, Spinner } from './components/ui';
 import { Sidebar } from './components/Layout';
+
+function useTheme() {
+  const [theme, setTheme] = useState(() => localStorage.getItem('vb_theme') || 'light');
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'dark') root.classList.add('dark');
+    else root.classList.remove('dark');
+    localStorage.setItem('vb_theme', theme);
+  }, [theme]);
+  const toggle = () => setTheme(t => t === 'dark' ? 'light' : 'dark');
+  return { theme, toggle };
+}
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import Vendors from './pages/Vendors';
@@ -19,6 +31,7 @@ import Notifications from './pages/Notifications';
 const resetToken = new URLSearchParams(window.location.search).get('reset_token');
 
 export default function App() {
+  const { theme, toggle: toggleTheme } = useTheme();
   const [user, setUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [activeView, setActiveView] = useState('dashboard');
@@ -71,7 +84,7 @@ export default function App() {
 
   if (!authChecked) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center">
         <Spinner size="lg" />
       </div>
     );
@@ -106,9 +119,9 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen bg-slate-950 overflow-hidden">
+    <div className="flex h-screen bg-gray-50 dark:bg-slate-950 overflow-hidden">
       <Toast toasts={toasts} removeToast={removeToast} />
-      <Sidebar activeView={activeView} setActiveView={setActiveView} user={user} onLogout={handleLogout} pendingCount={pendingCount} />
+      <Sidebar activeView={activeView} setActiveView={setActiveView} user={user} onLogout={handleLogout} pendingCount={pendingCount} theme={theme} onToggleTheme={toggleTheme} />
       <main className="flex-1 overflow-y-auto">
         <div className="p-6 max-w-[1400px] mx-auto" key={user?.id}>
           {renderPage()}

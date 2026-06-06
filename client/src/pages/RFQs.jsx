@@ -20,16 +20,16 @@ function StepIndicator({ step = 1 }) {
           <div key={n} className="flex items-center">
             <div className="flex flex-col items-center">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold border-2 transition-colors ${
-                done ? 'bg-indigo-600 border-indigo-600 text-white'
-                     : active ? 'border-indigo-500 text-indigo-400 bg-indigo-500/10'
-                               : 'border-slate-600 text-slate-500 bg-transparent'
+                done ? 'bg-blue-600 dark:bg-indigo-600 border-blue-600 dark:border-indigo-600 text-white'
+                     : active ? 'border-blue-500 dark:border-indigo-500 text-blue-600 dark:text-indigo-400 bg-blue-50 dark:bg-indigo-500/10'
+                               : 'border-gray-300 dark:border-slate-600 text-gray-400 dark:text-slate-500 bg-transparent'
               }`}>
                 {done ? '✓' : n}
               </div>
-              <span className={`text-xs mt-1 whitespace-nowrap ${active ? 'text-indigo-400' : 'text-slate-500'}`}>{label}</span>
+              <span className={`text-xs mt-1 whitespace-nowrap ${active ? 'text-blue-600 dark:text-indigo-400' : 'text-gray-400 dark:text-slate-500'}`}>{label}</span>
             </div>
             {i < steps.length - 1 && (
-              <div className={`h-0.5 w-16 mx-1 mb-4 ${done ? 'bg-indigo-600' : 'bg-slate-700'}`} />
+              <div className={`h-0.5 w-16 mx-1 mb-4 ${done ? 'bg-blue-600 dark:bg-indigo-600' : 'bg-gray-200 dark:bg-slate-700'}`} />
             )}
           </div>
         );
@@ -144,16 +144,19 @@ export default function RFQs({ user, addToast }) {
   const selectedVendors = vendors.filter(v => form.vendor_ids.includes(v.id));
   const unselectedVendors = vendors.filter(v => !form.vendor_ids.includes(v.id));
 
+  const selectCls = "w-full px-3 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-indigo-500";
+  const inlineCls = "w-full px-2 py-1 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700/50 rounded text-xs text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-600 focus:outline-none focus:border-blue-500 dark:focus:border-indigo-500";
+
   if (showCreate) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-3">
-          <button onClick={cancelCreate} className="text-slate-400 hover:text-white transition-colors p-1">
+          <button onClick={cancelCreate} className="text-gray-400 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white transition-colors p-1">
             <ArrowLeft size={18} />
           </button>
           <div>
-            <h1 className="text-xl font-semibold text-white">Create RFQ</h1>
-            <p className="text-slate-400 text-sm mt-0.5">New request for quotation</p>
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Create RFQ</h1>
+            <p className="text-gray-500 dark:text-slate-400 text-sm mt-0.5">New request for quotation</p>
           </div>
         </div>
 
@@ -161,14 +164,13 @@ export default function RFQs({ user, addToast }) {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="space-y-4">
-            <div className="bg-slate-800 border border-slate-700/50 rounded-xl p-5 space-y-4">
-              <h3 className="text-sm font-semibold text-slate-200 mb-3">RFQ Details</h3>
+            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700/50 rounded-xl p-5 space-y-4 shadow-sm dark:shadow-none">
+              <h3 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3">RFQ Details</h3>
               <Input label="RFQ Title *" value={form.title} onChange={e => set('title', e.target.value)}
                 placeholder="Office Furniture Procurement Q2" />
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">Category</label>
-                <select value={form.category} onChange={e => set('category', e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
+                <label className="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">Category</label>
+                <select value={form.category} onChange={e => set('category', e.target.value)} className={selectCls}>
                   <option value="">Select category</option>
                   {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
@@ -189,46 +191,43 @@ export default function RFQs({ user, addToast }) {
           </div>
 
           <div className="space-y-4">
-            <div className="bg-slate-800 border border-slate-700/50 rounded-xl p-5">
+            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700/50 rounded-xl p-5 shadow-sm dark:shadow-none">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-slate-200">Line Items</h3>
+                <h3 className="text-sm font-semibold text-gray-800 dark:text-slate-200">Line Items</h3>
                 <Btn variant="ghost" size="sm" onClick={addItem}><Plus size={13} /> Add Item</Btn>
               </div>
               {form.items.length === 0 ? (
-                <div className="text-center py-4 text-xs text-slate-500 bg-slate-900 rounded-lg">
+                <div className="text-center py-4 text-xs text-gray-400 dark:text-slate-500 bg-gray-50 dark:bg-slate-900 rounded-lg">
                   No items added yet
                 </div>
               ) : (
-                <div className="bg-slate-900 rounded-lg overflow-hidden">
+                <div className="bg-gray-50 dark:bg-slate-900 rounded-lg overflow-hidden">
                   <table className="w-full text-xs">
                     <thead>
-                      <tr className="border-b border-slate-700/50">
-                        <th className="text-left px-3 py-2 text-slate-500">Item</th>
-                        <th className="text-left px-3 py-2 text-slate-500 w-16">Qty</th>
-                        <th className="text-left px-3 py-2 text-slate-500 w-16">Unit</th>
+                      <tr className="border-b border-gray-200 dark:border-slate-700/50">
+                        <th className="text-left px-3 py-2 text-gray-500 dark:text-slate-500">Item</th>
+                        <th className="text-left px-3 py-2 text-gray-500 dark:text-slate-500 w-16">Qty</th>
+                        <th className="text-left px-3 py-2 text-gray-500 dark:text-slate-500 w-16">Unit</th>
                         <th className="w-8" />
                       </tr>
                     </thead>
                     <tbody>
                       {form.items.map((it, i) => (
-                        <tr key={i} className="border-b border-slate-700/20 last:border-0">
+                        <tr key={i} className="border-b border-gray-100 dark:border-slate-700/20 last:border-0">
                           <td className="px-2 py-1.5">
                             <input value={it.product_name} onChange={e => setItem(i, 'product_name', e.target.value)}
-                              placeholder="Product name"
-                              className="w-full px-2 py-1 bg-slate-800 border border-slate-700/50 rounded text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500" />
+                              placeholder="Product name" className={inlineCls} />
                           </td>
                           <td className="px-2 py-1.5">
                             <input type="number" value={it.quantity} onChange={e => setItem(i, 'quantity', e.target.value)}
-                              placeholder="0"
-                              className="w-full px-2 py-1 bg-slate-800 border border-slate-700/50 rounded text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500" />
+                              placeholder="0" className={inlineCls} />
                           </td>
                           <td className="px-2 py-1.5">
                             <input value={it.unit} onChange={e => setItem(i, 'unit', e.target.value)}
-                              placeholder="NOS"
-                              className="w-full px-2 py-1 bg-slate-800 border border-slate-700/50 rounded text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500" />
+                              placeholder="NOS" className={inlineCls} />
                           </td>
                           <td className="px-2 py-1.5">
-                            <button onClick={() => removeItem(i)} className="text-slate-600 hover:text-red-400 transition-colors">
+                            <button onClick={() => removeItem(i)} className="text-gray-400 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 transition-colors">
                               <X size={13} />
                             </button>
                           </td>
@@ -241,26 +240,26 @@ export default function RFQs({ user, addToast }) {
             </div>
 
             {vendors.length > 0 && (
-              <div className="bg-slate-800 border border-slate-700/50 rounded-xl p-5">
-                <h3 className="text-sm font-semibold text-slate-200 mb-3">Assign Vendors</h3>
+              <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700/50 rounded-xl p-5 shadow-sm dark:shadow-none">
+                <h3 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3">Assign Vendors</h3>
                 <div className="flex flex-wrap gap-2 mb-3 min-h-[32px]">
                   {selectedVendors.map(v => (
-                    <span key={v.id} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 rounded-lg text-xs">
+                    <span key={v.id} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 dark:bg-indigo-500/15 border border-blue-200 dark:border-indigo-500/30 text-blue-700 dark:text-indigo-300 rounded-lg text-xs">
                       {v.name}
-                      <button onClick={() => toggleVendor(v.id)} className="text-indigo-400 hover:text-indigo-200">
+                      <button onClick={() => toggleVendor(v.id)} className="text-blue-400 dark:text-indigo-400 hover:text-blue-600 dark:hover:text-indigo-200">
                         <X size={11} />
                       </button>
                     </span>
                   ))}
                   {selectedVendors.length === 0 && (
-                    <span className="text-xs text-slate-500">No vendors selected</span>
+                    <span className="text-xs text-gray-400 dark:text-slate-500">No vendors selected</span>
                   )}
                 </div>
                 {unselectedVendors.length > 0 && (
                   <select
                     value=""
                     onChange={e => { if (e.target.value) toggleVendor(Number(e.target.value)); }}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
+                    className={selectCls}
                   >
                     <option value="">+ Add vendor…</option>
                     {unselectedVendors.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
@@ -269,10 +268,10 @@ export default function RFQs({ user, addToast }) {
               </div>
             )}
 
-            <div className="bg-slate-800 border border-slate-700/50 rounded-xl p-5">
-              <h3 className="text-sm font-semibold text-slate-200 mb-3">Attachments</h3>
-              <div className="border-2 border-dashed border-slate-700 rounded-lg p-6 text-center">
-                <p className="text-xs text-slate-500">Drag & drop files or click to upload</p>
+            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700/50 rounded-xl p-5 shadow-sm dark:shadow-none">
+              <h3 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3">Attachments</h3>
+              <div className="border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-lg p-6 text-center">
+                <p className="text-xs text-gray-400 dark:text-slate-500">Drag & drop files or click to upload</p>
               </div>
             </div>
           </div>
@@ -293,7 +292,9 @@ export default function RFQs({ user, addToast }) {
         {['', 'open', 'draft', 'closed', 'cancelled'].map(s => (
           <button key={s} onClick={() => setFilterStatus(s)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              filterStatus === s ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white border border-slate-700'
+              filterStatus === s
+                ? 'bg-blue-600 dark:bg-indigo-600 text-white'
+                : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white border border-gray-200 dark:border-slate-700'
             }`}>
             {s || 'All'}
           </button>
@@ -307,45 +308,45 @@ export default function RFQs({ user, addToast }) {
       ) : (
         <div className="space-y-2">
           {rfqs.map(rfq => (
-            <div key={rfq.id} className="bg-slate-800 border border-slate-700/50 rounded-xl overflow-hidden">
+            <div key={rfq.id} className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700/50 rounded-xl overflow-hidden shadow-sm dark:shadow-none">
               <div
-                className="px-5 py-4 flex items-center justify-between gap-4 cursor-pointer hover:bg-slate-700/20 transition-colors"
+                className="px-5 py-4 flex items-center justify-between gap-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700/20 transition-colors"
                 onClick={() => toggleExpand(rfq)}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center shrink-0">
-                    <FileText size={15} className="text-indigo-400" />
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-indigo-500/10 flex items-center justify-center shrink-0">
+                    <FileText size={15} className="text-blue-600 dark:text-indigo-400" />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-semibold text-white truncate">{rfq.title}</p>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{rfq.title}</p>
                       {rfq.category && (
-                        <span className="text-xs text-slate-500 bg-slate-700 px-2 py-0.5 rounded">{rfq.category}</span>
+                        <span className="text-xs text-gray-500 dark:text-slate-500 bg-gray-100 dark:bg-slate-700 px-2 py-0.5 rounded">{rfq.category}</span>
                       )}
                     </div>
-                    <div className="flex items-center gap-3 mt-0.5 text-xs text-slate-500">
+                    <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-400 dark:text-slate-500">
                       <span className="flex items-center gap-1"><Calendar size={11} /> {fmtDate(rfq.deadline)}</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                   <StatusBadge status={rfq.status} />
-                  {expanded?.id === rfq.id ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
+                  {expanded?.id === rfq.id ? <ChevronUp size={16} className="text-gray-400 dark:text-slate-400" /> : <ChevronDown size={16} className="text-gray-400 dark:text-slate-400" />}
                 </div>
               </div>
 
               {expanded?.id === rfq.id && (
-                <div className="border-t border-slate-700/50 px-5 py-4 space-y-4">
+                <div className="border-t border-gray-100 dark:border-slate-700/50 px-5 py-4 space-y-4">
                   {expanded.description && (
-                    <p className="text-sm text-slate-300">{expanded.description}</p>
+                    <p className="text-sm text-gray-700 dark:text-slate-300">{expanded.description}</p>
                   )}
                   {expanded.items?.length > 0 && (
                     <div>
-                      <p className="text-xs font-medium text-slate-400 mb-2">Items</p>
-                      <div className="bg-slate-900 rounded-lg overflow-hidden">
+                      <p className="text-xs font-medium text-gray-500 dark:text-slate-400 mb-2">Items</p>
+                      <div className="bg-gray-50 dark:bg-slate-900 rounded-lg overflow-hidden">
                         <table className="w-full text-xs">
                           <thead>
-                            <tr className="border-b border-slate-700 text-slate-500">
+                            <tr className="border-b border-gray-200 dark:border-slate-700 text-gray-500 dark:text-slate-500">
                               <th className="text-left px-3 py-2">Product</th>
                               <th className="text-right px-3 py-2">Qty</th>
                               <th className="text-left px-3 py-2">Unit</th>
@@ -353,10 +354,10 @@ export default function RFQs({ user, addToast }) {
                           </thead>
                           <tbody>
                             {expanded.items.map(it => (
-                              <tr key={it.id} className="border-b border-slate-700/30 last:border-0">
-                                <td className="px-3 py-2 text-white">{it.product_name}</td>
-                                <td className="px-3 py-2 text-right text-slate-300">{it.quantity}</td>
-                                <td className="px-3 py-2 text-slate-400">{it.unit || '—'}</td>
+                              <tr key={it.id} className="border-b border-gray-100 dark:border-slate-700/30 last:border-0">
+                                <td className="px-3 py-2 text-gray-900 dark:text-white">{it.product_name}</td>
+                                <td className="px-3 py-2 text-right text-gray-600 dark:text-slate-300">{it.quantity}</td>
+                                <td className="px-3 py-2 text-gray-500 dark:text-slate-400">{it.unit || '—'}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -366,10 +367,10 @@ export default function RFQs({ user, addToast }) {
                   )}
                   {expanded.vendors?.length > 0 && (
                     <div>
-                      <p className="text-xs font-medium text-slate-400 mb-2">Assigned Vendors</p>
+                      <p className="text-xs font-medium text-gray-500 dark:text-slate-400 mb-2">Assigned Vendors</p>
                       <div className="flex flex-wrap gap-2">
                         {expanded.vendors.map(v => (
-                          <span key={v.id} className="px-2.5 py-1 bg-slate-700 text-slate-300 rounded-md text-xs">{v.name}</span>
+                          <span key={v.id} className="px-2.5 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 rounded-md text-xs">{v.name}</span>
                         ))}
                       </div>
                     </div>
@@ -403,7 +404,7 @@ export default function RFQs({ user, addToast }) {
             <Btn variant="danger" onClick={handleDelete}>Delete</Btn>
           </>}
         >
-          <p className="text-slate-300 text-sm">Delete <span className="font-semibold text-white">{deleteTarget.title}</span>? This cannot be undone.</p>
+          <p className="text-gray-700 dark:text-slate-300 text-sm">Delete <span className="font-semibold text-gray-900 dark:text-white">{deleteTarget.title}</span>? This cannot be undone.</p>
         </Modal>
       )}
     </div>

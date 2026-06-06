@@ -59,7 +59,25 @@ async def create_vendor(body: VendorBody, user: dict = Depends(require_roles("ad
             body.name, body.email, body.phone, body.gst_number, body.category,
             body.status, body.address, body.city, body.state, body.pincode, body.photo_url
         )
+        # Auto-link if vendor user signed up before admin created the record
+        linked_user = await conn.fetchval(
+            "SELECT id FROM users WHERE email=$1 AND role='vendor'", body.email
+        )
+        if linked_user:
+            await conn.execute("UPDATE vendors SET user_id=$1 WHERE id=$2", linked_user, row["id"])
         await log_activity(conn, int(user["sub"]), "created", "vendor", row["id"], {"name": body.name})
+    return dict(row)
+
+
+@router.get("/me")
+async def get_my_vendor_profile(user: dict = Depends(get_current_user)):
+    if user["role"] != "vendor":
+        raise HTTPException(403, "Only vendors can access this endpoint")
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow("SELECT * FROM vendors WHERE user_id=$1", int(user["sub"]))
+    if not row:
+        raise HTTPException(404, "No vendor profile linked to your account")
     return dict(row)
 
 
