@@ -125,7 +125,7 @@ export default function Vendors({ user, addToast }) {
     }
   };
 
-  const FormFields = () => (
+  const formFields = (
     <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
       {form.photo_url && (
         <div className="flex items-center gap-3 p-3 bg-slate-900 rounded-lg">
@@ -277,7 +277,7 @@ export default function Vendors({ user, addToast }) {
             </div>
           }
         >
-          {canEdit ? <FormFields /> : (
+          {canEdit ? formFields : (
             <div className="space-y-3 max-h-[60vh] overflow-y-auto">
               <div className="flex items-center gap-3 p-4 bg-slate-900 rounded-lg">
                 <VendorAvatar vendor={selected} size="lg" />
@@ -312,7 +312,7 @@ export default function Vendors({ user, addToast }) {
             <Btn variant="primary" onClick={handleSave} disabled={saving}>{saving ? 'Saving…' : 'Add Vendor'}</Btn>
           </>}
         >
-          <FormFields />
+          {formFields}
         </Modal>
       )}
 
