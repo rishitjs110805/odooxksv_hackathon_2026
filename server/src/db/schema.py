@@ -113,6 +113,10 @@ CREATE TABLE IF NOT EXISTS activity_logs (
 );
 
 ALTER TABLE vendors ADD COLUMN IF NOT EXISTS photo_url TEXT;
+ALTER TABLE rfqs ADD COLUMN IF NOT EXISTS category TEXT;
+ALTER TABLE quotations DROP CONSTRAINT IF EXISTS quotations_status_check;
+ALTER TABLE quotations ADD CONSTRAINT quotations_status_check
+    CHECK (status IN ('draft', 'submitted', 'under_review', 'accepted', 'rejected'));
 
 CREATE TABLE IF NOT EXISTS password_reset_tokens (
     id SERIAL PRIMARY KEY,
