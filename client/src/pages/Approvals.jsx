@@ -41,7 +41,7 @@ function ApprovalTimeline({ status }) {
   );
 }
 
-export default function Approvals({ user, addToast, setActiveView }) {
+export default function Approvals({ user, addToast, onAction }) {
   const [approvals, setApprovals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
@@ -79,6 +79,7 @@ export default function Approvals({ user, addToast, setActiveView }) {
         'success'
       );
       load();
+      if (onAction) onAction();
     } catch (e) {
       addToast('Error', e.message, 'error');
     } finally {
