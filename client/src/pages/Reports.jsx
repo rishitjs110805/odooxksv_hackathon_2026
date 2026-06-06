@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { BarChart3, TrendingUp, Building2, AlertCircle, CheckCircle, Download } from 'lucide-react';
+import { BarChart3, Download } from 'lucide-react';
 import { api } from '../services/api';
 import { PageLoader, SectionHeader, Empty, fmt } from '../components/ui';
 
 const BAR_COLORS = [
-  'bg-indigo-500',
   'bg-blue-500',
+  'bg-indigo-500',
   'bg-emerald-500',
   'bg-amber-500',
   'bg-purple-500',
@@ -14,15 +14,15 @@ const BAR_COLORS = [
 
 function StatCard4({ label, value, sub, color }) {
   const COLOR = {
-    teal:   'border-teal-500/20 bg-teal-500/5 text-teal-400',
-    blue:   'border-blue-500/20 bg-blue-500/5 text-blue-400',
-    amber:  'border-amber-500/20 bg-amber-500/5 text-amber-400',
-    red:    'border-red-500/20 bg-red-500/5 text-red-400',
+    teal:  'border-teal-200 dark:border-teal-500/20 bg-teal-50 dark:bg-teal-500/5 text-teal-700 dark:text-teal-400',
+    blue:  'border-blue-200 dark:border-blue-500/20 bg-blue-50 dark:bg-blue-500/5 text-blue-700 dark:text-blue-400',
+    amber: 'border-amber-200 dark:border-amber-500/20 bg-amber-50 dark:bg-amber-500/5 text-amber-700 dark:text-amber-400',
+    red:   'border-red-200 dark:border-red-500/20 bg-red-50 dark:bg-red-500/5 text-red-600 dark:text-red-400',
   };
   return (
     <div className={`rounded-xl border p-5 ${COLOR[color] || COLOR.blue}`}>
-      <p className={`text-2xl font-bold`}>{value}</p>
-      <p className="text-sm font-medium text-white mt-1">{label}</p>
+      <p className="text-2xl font-bold">{value}</p>
+      <p className="text-sm font-medium text-gray-900 dark:text-white mt-1">{label}</p>
       {sub && <p className="text-xs mt-0.5 opacity-60">{sub}</p>}
     </div>
   );
@@ -41,11 +41,11 @@ function MonthlyBars({ trends }) {
             <div className="w-full flex flex-col justify-end" style={{ height: '80px' }}>
               <div
                 title={fmt(m.total_spend)}
-                className="w-full rounded-t bg-indigo-500/60 hover:bg-indigo-500 transition-colors cursor-default"
+                className="w-full rounded-t bg-blue-400/60 dark:bg-indigo-500/60 hover:bg-blue-500 dark:hover:bg-indigo-500 transition-colors cursor-default"
                 style={{ height: `${Math.max(pct, 4)}%` }}
               />
             </div>
-            <span className="text-[10px] text-slate-500 truncate">{label}</span>
+            <span className="text-[10px] text-gray-400 dark:text-slate-500 truncate">{label}</span>
           </div>
         );
       })}
@@ -115,39 +115,27 @@ export default function Reports({ addToast }) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-xl font-semibold text-white">Reports &amp; analytics</h1>
-          <p className="text-sm text-slate-400 mt-0.5">Procurement Insights — {monthLabel}</p>
+          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Reports &amp; Analytics</h1>
+          <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">Procurement Insights — {monthLabel}</p>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleExport}
-            className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 border border-slate-700 text-slate-300 hover:text-white rounded-lg text-sm font-medium transition-colors"
-          >
-            <Download size={14} /> Export
-          </button>
-        </div>
+        <button
+          onClick={handleExport}
+          className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white rounded-lg text-sm font-medium transition-colors shadow-sm dark:shadow-none"
+        >
+          <Download size={14} /> Export CSV
+        </button>
       </div>
 
       {!hasData ? (
         <Empty icon={BarChart3} message="No analytics data yet. Complete some procurement cycles to see reports." />
       ) : (
         <>
-          {/* 4 Stat Cards */}
           {stats && (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <StatCard4
-                label="Total Spend"
-                value={fmt(stats.total_spend)}
-                color="teal"
-              />
-              <StatCard4
-                label="Active Vendors"
-                value={stats.active_vendors ?? 0}
-                color="blue"
-              />
+              <StatCard4 label="Total Spend"      value={fmt(stats.total_spend)}                color="teal"  />
+              <StatCard4 label="Active Vendors"   value={stats.active_vendors ?? 0}             color="blue"  />
               <StatCard4
                 label="PO Fulfillment"
                 value={`${stats.po_fulfillment_pct ?? 0}%`}
@@ -163,31 +151,29 @@ export default function Reports({ addToast }) {
             </div>
           )}
 
-          {/* Spend by Category + Top Vendors */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            {/* Spend by Category */}
-            <div className="bg-slate-800 border border-slate-700/50 rounded-xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-slate-700/50">
-                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Spend by Category</h3>
+            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700/50 rounded-xl overflow-hidden shadow-sm dark:shadow-none">
+              <div className="px-5 py-4 border-b border-gray-100 dark:border-slate-700/50">
+                <h3 className="text-xs font-semibold text-gray-500 dark:text-slate-500 uppercase tracking-wider">Spend by Category</h3>
               </div>
               {byCategory.length === 0 ? (
-                <p className="px-5 py-8 text-center text-sm text-slate-500">No category data yet</p>
+                <p className="px-5 py-8 text-center text-sm text-gray-400 dark:text-slate-500">No category data yet</p>
               ) : (
-                <div className="divide-y divide-slate-700/20">
+                <div className="divide-y divide-gray-50 dark:divide-slate-700/20">
                   {byCategory.map((c, i) => {
                     const pct = (Number(c.total_value) / maxCatValue) * 100;
                     return (
                       <div key={i} className="px-5 py-3 flex items-center gap-4">
-                        <span className="text-xs text-slate-400 w-24 shrink-0 truncate">
+                        <span className="text-xs text-gray-500 dark:text-slate-400 w-24 shrink-0 truncate">
                           {c.category || 'Uncategorized'}
                         </span>
-                        <div className="flex-1 bg-slate-900 rounded-full h-2">
+                        <div className="flex-1 bg-gray-100 dark:bg-slate-900 rounded-full h-2">
                           <div
                             className={`${BAR_COLORS[i % BAR_COLORS.length]} h-2 rounded-full transition-all`}
                             style={{ width: `${Math.max(pct, 2)}%` }}
                           />
                         </div>
-                        <span className="text-sm font-medium text-white w-20 text-right shrink-0">
+                        <span className="text-sm font-medium text-gray-900 dark:text-white w-20 text-right shrink-0">
                           {fmt(c.total_value)}
                         </span>
                       </div>
@@ -197,33 +183,31 @@ export default function Reports({ addToast }) {
               )}
             </div>
 
-            {/* Right column: Top Vendors + Monthly Trend */}
             <div className="space-y-5">
-              {/* Top Vendors by Spend */}
-              <div className="bg-slate-800 border border-slate-700/50 rounded-xl overflow-hidden">
-                <div className="px-5 py-4 border-b border-slate-700/50">
-                  <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Top Vendors by Spend</h3>
+              <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700/50 rounded-xl overflow-hidden shadow-sm dark:shadow-none">
+                <div className="px-5 py-4 border-b border-gray-100 dark:border-slate-700/50">
+                  <h3 className="text-xs font-semibold text-gray-500 dark:text-slate-500 uppercase tracking-wider">Top Vendors by Spend</h3>
                 </div>
                 {topVendors.length === 0 ? (
-                  <p className="px-5 py-6 text-center text-sm text-slate-500">No vendor data yet</p>
+                  <p className="px-5 py-6 text-center text-sm text-gray-400 dark:text-slate-500">No vendor data yet</p>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
-                        <tr className="border-b border-slate-700/30">
-                          <th className="text-left text-xs font-medium text-slate-500 px-5 py-2.5 uppercase">Vendor</th>
-                          <th className="text-right text-xs font-medium text-slate-500 px-5 py-2.5 uppercase">Spend (₹)</th>
-                          <th className="text-right text-xs font-medium text-slate-500 px-5 py-2.5 uppercase">POs</th>
+                        <tr className="border-b border-gray-100 dark:border-slate-700/30">
+                          <th className="text-left text-xs font-medium text-gray-500 dark:text-slate-500 px-5 py-2.5 uppercase">Vendor</th>
+                          <th className="text-right text-xs font-medium text-gray-500 dark:text-slate-500 px-5 py-2.5 uppercase">Spend (₹)</th>
+                          <th className="text-right text-xs font-medium text-gray-500 dark:text-slate-500 px-5 py-2.5 uppercase">POs</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-700/20">
+                      <tbody className="divide-y divide-gray-50 dark:divide-slate-700/20">
                         {topVendors.map(v => (
-                          <tr key={v.id} className="hover:bg-slate-700/10 transition-colors">
-                            <td className="px-5 py-3 text-sm text-white">{v.name}</td>
-                            <td className="px-5 py-3 text-sm text-right font-medium text-white">
+                          <tr key={v.id} className="hover:bg-gray-50 dark:hover:bg-slate-700/10 transition-colors">
+                            <td className="px-5 py-3 text-sm text-gray-900 dark:text-white">{v.name}</td>
+                            <td className="px-5 py-3 text-sm text-right font-medium text-gray-900 dark:text-white">
                               {fmt(v.total_po_value)}
                             </td>
-                            <td className="px-5 py-3 text-sm text-right text-slate-400">{v.total_pos}</td>
+                            <td className="px-5 py-3 text-sm text-right text-gray-500 dark:text-slate-400">{v.total_pos}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -232,12 +216,11 @@ export default function Reports({ addToast }) {
                 )}
               </div>
 
-              {/* Monthly Trend */}
               {spending?.monthly_trends?.length > 0 && (
-                <div className="bg-slate-800 border border-slate-700/50 rounded-xl overflow-hidden">
-                  <div className="px-5 py-4 border-b border-slate-700/50 flex items-center justify-between">
-                    <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Monthly Trend</h3>
-                    <span className="text-xs text-slate-500">Last 7 months</span>
+                <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700/50 rounded-xl overflow-hidden shadow-sm dark:shadow-none">
+                  <div className="px-5 py-4 border-b border-gray-100 dark:border-slate-700/50 flex items-center justify-between">
+                    <h3 className="text-xs font-semibold text-gray-500 dark:text-slate-500 uppercase tracking-wider">Monthly Trend</h3>
+                    <span className="text-xs text-gray-400 dark:text-slate-500">Last 7 months</span>
                   </div>
                   <div className="px-5 py-5">
                     <MonthlyBars trends={spending.monthly_trends} />
@@ -247,45 +230,44 @@ export default function Reports({ addToast }) {
             </div>
           </div>
 
-          {/* Vendor Performance Table */}
           {vendorPerf.length > 0 && (
-            <div className="bg-slate-800 border border-slate-700/50 rounded-xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-slate-700/50">
-                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Vendor Performance</h3>
+            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700/50 rounded-xl overflow-hidden shadow-sm dark:shadow-none">
+              <div className="px-5 py-4 border-b border-gray-100 dark:border-slate-700/50">
+                <h3 className="text-xs font-semibold text-gray-500 dark:text-slate-500 uppercase tracking-wider">Vendor Performance</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-slate-700/30">
+                    <tr className="border-b border-gray-100 dark:border-slate-700/30">
                       {['Vendor', 'Category', 'Quotations', 'Win Rate', 'Total POs', 'PO Value', 'Avg Delivery'].map(h => (
-                        <th key={h} className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">{h}</th>
+                        <th key={h} className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-500 uppercase tracking-wide">{h}</th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-700/20">
+                  <tbody className="divide-y divide-gray-50 dark:divide-slate-700/20">
                     {vendorPerf.map(v => {
                       const winRate = v.total_quotations > 0
                         ? Math.round((v.accepted_quotations / v.total_quotations) * 100)
                         : 0;
                       return (
-                        <tr key={v.id} className="hover:bg-slate-700/10 transition-colors">
-                          <td className="px-4 py-3 text-sm font-medium text-white">{v.name}</td>
-                          <td className="px-4 py-3 text-sm text-slate-400">{v.category || '—'}</td>
-                          <td className="px-4 py-3 text-sm text-slate-300">{v.total_quotations}</td>
+                        <tr key={v.id} className="hover:bg-gray-50 dark:hover:bg-slate-700/10 transition-colors">
+                          <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">{v.name}</td>
+                          <td className="px-4 py-3 text-sm text-gray-500 dark:text-slate-400">{v.category || '—'}</td>
+                          <td className="px-4 py-3 text-sm text-gray-700 dark:text-slate-300">{v.total_quotations}</td>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2">
-                              <div className="w-16 bg-slate-700 rounded-full h-1.5">
+                              <div className="w-16 bg-gray-200 dark:bg-slate-700 rounded-full h-1.5">
                                 <div
                                   className={`h-1.5 rounded-full ${winRate >= 50 ? 'bg-emerald-500' : 'bg-amber-500'}`}
                                   style={{ width: `${winRate}%` }}
                                 />
                               </div>
-                              <span className="text-xs text-slate-400">{winRate}%</span>
+                              <span className="text-xs text-gray-500 dark:text-slate-400">{winRate}%</span>
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-sm text-slate-300">{v.total_pos}</td>
-                          <td className="px-4 py-3 text-sm font-medium text-white">{fmt(v.total_po_value)}</td>
-                          <td className="px-4 py-3 text-sm text-slate-400">
+                          <td className="px-4 py-3 text-sm text-gray-700 dark:text-slate-300">{v.total_pos}</td>
+                          <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">{fmt(v.total_po_value)}</td>
+                          <td className="px-4 py-3 text-sm text-gray-500 dark:text-slate-400">
                             {v.avg_delivery_days ? `${Number(v.avg_delivery_days).toFixed(0)} days` : '—'}
                           </td>
                         </tr>

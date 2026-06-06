@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Check, Clock, X, AlertTriangle, FileSearch, GitCompare, ShoppingCart, BarChart3 } from 'lucide-react';
+import { Check, Clock, X, AlertTriangle, FileSearch } from 'lucide-react';
 import { api } from '../services/api';
 import { PageLoader, SectionHeader, Btn, Empty, fmt, fmtDate } from '../components/ui';
 
@@ -20,19 +20,19 @@ function ApprovalTimeline({ status }) {
             <div className="flex flex-col items-center min-w-[80px]">
               <div className={`w-9 h-9 rounded-full flex items-center justify-center font-semibold border-2 transition-colors ${
                 done        ? 'bg-emerald-600 border-emerald-600 text-white'
-                : rejected  ? 'bg-red-500/15 border-red-500 text-red-400'
-                : active    ? 'border-amber-500 text-amber-400 bg-amber-500/10'
-                            : 'border-slate-600 text-slate-500 bg-transparent'
+                : rejected  ? 'bg-red-50 dark:bg-red-500/15 border-red-500 text-red-500 dark:text-red-400'
+                : active    ? 'border-amber-500 text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10'
+                            : 'border-gray-300 dark:border-slate-600 text-gray-400 dark:text-slate-500 bg-transparent'
               }`}>
                 {done ? <Check size={16} /> : rejected ? <X size={16} /> : <span className="text-sm">{n}</span>}
               </div>
               <span className={`text-xs mt-1.5 text-center whitespace-nowrap ${
-                active ? (rejected ? 'text-red-400' : 'text-amber-400')
-                : done ? 'text-emerald-400' : 'text-slate-500'
+                active ? (rejected ? 'text-red-500 dark:text-red-400' : 'text-amber-600 dark:text-amber-400')
+                : done ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-slate-500'
               }`}>{label}</span>
             </div>
             {i < STEPS.length - 1 && (
-              <div className={`h-0.5 w-12 mx-1 mb-5 shrink-0 ${done ? 'bg-emerald-600' : 'bg-slate-700'}`} />
+              <div className={`h-0.5 w-12 mx-1 mb-5 shrink-0 ${done ? 'bg-emerald-600' : 'bg-gray-200 dark:bg-slate-700'}`} />
             )}
           </div>
         );
@@ -131,16 +131,16 @@ export default function Approvals({ user, addToast, onAction }) {
       {isManager && (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           {[
-            ['Pending Decisions', pending.length, Clock, 'text-amber-400 bg-amber-500/10'],
-            ['Approved Quotes', approved.length, Check, 'text-emerald-400 bg-emerald-500/10'],
-            ['Rejected Quotes', rejected.length, X, 'text-red-400 bg-red-500/10'],
-            ['Total Reviews', approvals.length, FileSearch, 'text-blue-400 bg-blue-500/10'],
+            ['Pending Decisions', pending.length,   Clock,       'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10'],
+            ['Approved Quotes',   approved.length,  Check,       'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10'],
+            ['Rejected Quotes',   rejected.length,  X,           'text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-500/10'],
+            ['Total Reviews',     approvals.length, FileSearch,  'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10'],
           ].map(([label, value, Icon, tone]) => (
-            <div key={label} className="bg-slate-800 border border-slate-700/50 rounded-xl p-4">
+            <div key={label} className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700/50 rounded-xl p-4 shadow-sm dark:shadow-none">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-xs text-slate-500">{label}</p>
-                  <p className="text-2xl font-bold text-white mt-1">{value}</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-500">{label}</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{value}</p>
                 </div>
                 <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${tone}`}>
                   <Icon size={17} />
@@ -152,12 +152,12 @@ export default function Approvals({ user, addToast, onAction }) {
       )}
 
       {approvals.length > 1 && (
-        <div className="bg-slate-800 border border-slate-700/50 rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap">
-          <label className="text-xs font-medium text-slate-400 shrink-0">Viewing:</label>
+        <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700/50 rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap shadow-sm dark:shadow-none">
+          <label className="text-xs font-medium text-gray-500 dark:text-slate-400 shrink-0">Viewing:</label>
           <select
             value={selected?.id || ''}
             onChange={e => setSelected(approvals.find(a => a.id === Number(e.target.value)))}
-            className="flex-1 min-w-0 px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
+            className="flex-1 min-w-0 px-3 py-1.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-indigo-500"
           >
             {approvals.map(a => (
               <option key={a.id} value={a.id}>
@@ -171,10 +171,10 @@ export default function Approvals({ user, addToast, onAction }) {
       {apr && (
         <div className="space-y-5">
           {/* Timeline card */}
-          <div className="bg-slate-800 border border-slate-700/50 rounded-xl px-6 py-5">
+          <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700/50 rounded-xl px-6 py-5 shadow-sm dark:shadow-none">
             <div className="mb-4">
-              <h3 className="text-sm font-semibold text-white">Approval Workflow</h3>
-              <p className="text-xs text-slate-400 mt-1">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Approval Workflow</h3>
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
                 {apr.rfq_title} — {apr.vendor_name} — {fmt(apr.total_amount)}
               </p>
             </div>
@@ -184,38 +184,36 @@ export default function Approvals({ user, addToast, onAction }) {
           {/* Two-column detail */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             {/* Left: Approval chain + actions */}
-            <div className="bg-slate-800 border border-slate-700/50 rounded-xl p-6 space-y-5">
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Approval Chain</p>
+            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700/50 rounded-xl p-6 space-y-5 shadow-sm dark:shadow-none">
+              <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider">Approval Chain</p>
 
-              {/* Step 1: Procurement */}
               <div className="flex items-start gap-3">
-                <div className="w-7 h-7 rounded-full bg-emerald-500/15 border-2 border-emerald-500 flex items-center justify-center shrink-0 mt-0.5">
-                  <Check size={13} className="text-emerald-400" />
+                <div className="w-7 h-7 rounded-full bg-emerald-50 dark:bg-emerald-500/15 border-2 border-emerald-500 flex items-center justify-center shrink-0 mt-0.5">
+                  <Check size={13} className="text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-white">Procurement Team</p>
-                  <p className="text-xs text-slate-500">Submitted {fmtDate(apr.created_at)}</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">Procurement Team</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-500">Submitted {fmtDate(apr.created_at)}</p>
                 </div>
               </div>
 
-              {/* Step 2: Manager */}
               <div className="flex items-start gap-3">
                 {apr.status === 'approved' ? (
-                  <div className="w-7 h-7 rounded-full bg-emerald-500/15 border-2 border-emerald-500 flex items-center justify-center shrink-0 mt-0.5">
-                    <Check size={13} className="text-emerald-400" />
+                  <div className="w-7 h-7 rounded-full bg-emerald-50 dark:bg-emerald-500/15 border-2 border-emerald-500 flex items-center justify-center shrink-0 mt-0.5">
+                    <Check size={13} className="text-emerald-600 dark:text-emerald-400" />
                   </div>
                 ) : apr.status === 'rejected' ? (
-                  <div className="w-7 h-7 rounded-full bg-red-500/15 border-2 border-red-500 flex items-center justify-center shrink-0 mt-0.5">
-                    <X size={13} className="text-red-400" />
+                  <div className="w-7 h-7 rounded-full bg-red-50 dark:bg-red-500/15 border-2 border-red-500 flex items-center justify-center shrink-0 mt-0.5">
+                    <X size={13} className="text-red-500 dark:text-red-400" />
                   </div>
                 ) : (
-                  <div className="w-7 h-7 rounded-full border-2 border-amber-500 bg-amber-500/10 flex items-center justify-center shrink-0 mt-0.5">
-                    <Clock size={13} className="text-amber-400" />
+                  <div className="w-7 h-7 rounded-full border-2 border-amber-500 bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <Clock size={13} className="text-amber-600 dark:text-amber-400" />
                   </div>
                 )}
                 <div>
-                  <p className="text-sm font-medium text-white">{apr.approver_name || 'Manager / Finance'}</p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{apr.approver_name || 'Manager / Finance'}</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-500">
                     {apr.status === 'pending'
                       ? 'Awaiting approval'
                       : apr.status === 'approved'
@@ -226,28 +224,28 @@ export default function Approvals({ user, addToast, onAction }) {
               </div>
 
               {apr.remarks && (
-                <div className="bg-slate-900 rounded-lg px-3 py-2.5">
-                  <p className="text-xs text-slate-500 mb-1">Remarks</p>
-                  <p className="text-sm text-slate-300">{apr.remarks}</p>
+                <div className="bg-gray-50 dark:bg-slate-900 rounded-lg px-3 py-2.5">
+                  <p className="text-xs text-gray-500 dark:text-slate-500 mb-1">Remarks</p>
+                  <p className="text-sm text-gray-700 dark:text-slate-300">{apr.remarks}</p>
                 </div>
               )}
 
               {isManager && apr.status === 'pending' && (
-                <div className="space-y-3 pt-3 border-t border-slate-700/50">
-                  <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2.5 flex gap-2">
-                    <AlertTriangle size={15} className="text-amber-400 shrink-0 mt-0.5" />
-                    <p className="text-xs text-amber-100/80">
+                <div className="space-y-3 pt-3 border-t border-gray-100 dark:border-slate-700/50">
+                  <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg px-3 py-2.5 flex gap-2">
+                    <AlertTriangle size={15} className="text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-700 dark:text-amber-100/80">
                       Manager decision required. Verify vendor fit, pricing, delivery risk, and compliance notes before action.
                     </p>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Approval Remarks</label>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">Approval Remarks</label>
                     <textarea
                       value={remarks[apr.id] || ''}
                       onChange={e => setRemarks(m => ({ ...m, [apr.id]: e.target.value }))}
                       placeholder="Optional remarks or conditions..."
                       rows={3}
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 resize-none"
+                      className="w-full px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-sm text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500 dark:focus:border-indigo-500 resize-none"
                     />
                   </div>
                   <div className="flex gap-2">
@@ -262,18 +260,17 @@ export default function Approvals({ user, addToast, onAction }) {
               )}
 
               {canCreate && apr.status === 'approved' && (
-                <div className="pt-3 border-t border-slate-700/50 space-y-2">
+                <div className="pt-3 border-t border-gray-100 dark:border-slate-700/50 space-y-2">
                   <Btn variant="primary" onClick={() => handleGeneratePO(apr)} disabled={processing}>
                     {processing ? 'Creating PO…' : 'Generate PO'}
                   </Btn>
-                  <p className="text-xs text-slate-500">Creates a purchase order from this approved quotation.</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-500">Creates a purchase order from this approved quotation.</p>
                 </div>
               )}
             </div>
 
-            {/* Right: Quotation summary */}
-            <div className="bg-slate-800 border border-slate-700/50 rounded-xl p-6">
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-5">Quotation Summary</p>
+            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700/50 rounded-xl p-6 shadow-sm dark:shadow-none">
+              <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-5">Quotation Summary</p>
               <div className="space-y-4">
                 {[
                   ['RFQ',           apr.rfq_title],
@@ -284,9 +281,9 @@ export default function Approvals({ user, addToast, onAction }) {
                   ['Status',        apr.status],
                 ].map(([label, val]) => (
                   <div key={label} className="flex items-center justify-between">
-                    <span className="text-sm text-slate-400">{label}</span>
+                    <span className="text-sm text-gray-500 dark:text-slate-400">{label}</span>
                     <span className={`text-sm font-medium text-right ${
-                      label === 'Total Amount' ? 'text-white text-base font-bold' : 'text-white'
+                      label === 'Total Amount' ? 'text-gray-900 dark:text-white text-base font-bold' : 'text-gray-900 dark:text-white'
                     }`}>
                       {val}
                     </span>

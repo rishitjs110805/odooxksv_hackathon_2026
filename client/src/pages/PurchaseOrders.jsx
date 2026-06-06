@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ShoppingCart, Plus, ChevronDown, ChevronUp, Calendar } from 'lucide-react';
+import { ShoppingCart, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import { api } from '../services/api';
 import { PageLoader, SectionHeader, StatusBadge, Btn, Input, Modal, Empty, fmt, fmtDate } from '../components/ui';
 
@@ -100,56 +100,56 @@ export default function PurchaseOrders({ user, addToast, setActiveView }) {
       ) : (
         <div className="space-y-2">
           {pos.map(po => (
-            <div key={po.id} className="bg-slate-800 border border-slate-700/50 rounded-xl overflow-hidden">
+            <div key={po.id} className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700/50 rounded-xl overflow-hidden shadow-sm dark:shadow-none">
               <div
-                className="px-5 py-4 flex items-center justify-between gap-4 cursor-pointer hover:bg-slate-700/20 transition-colors"
+                className="px-5 py-4 flex items-center justify-between gap-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700/20 transition-colors"
                 onClick={() => toggleExpand(po)}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center shrink-0">
-                    <ShoppingCart size={15} className="text-indigo-400" />
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-indigo-500/10 flex items-center justify-center shrink-0">
+                    <ShoppingCart size={15} className="text-blue-600 dark:text-indigo-400" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-white">{po.po_number}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">{po.vendor_name} · {fmtDate(po.created_at)}</p>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{po.po_number}</p>
+                    <p className="text-xs text-gray-500 dark:text-slate-500 mt-0.5">{po.vendor_name} · {fmtDate(po.created_at)}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
-                  <span className="text-sm font-semibold text-white">{fmt(po.total_amount)}</span>
+                  <span className="text-sm font-semibold text-gray-900 dark:text-white">{fmt(po.total_amount)}</span>
                   <StatusBadge status={po.status} />
-                  {expanded === po.id ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
+                  {expanded === po.id ? <ChevronUp size={16} className="text-gray-400 dark:text-slate-400" /> : <ChevronDown size={16} className="text-gray-400 dark:text-slate-400" />}
                 </div>
               </div>
 
               {expanded === po.id && expandedDetail && (
-                <div className="border-t border-slate-700/50 px-5 py-4 space-y-4">
+                <div className="border-t border-gray-100 dark:border-slate-700/50 px-5 py-4 space-y-4">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div>
-                      <p className="text-xs text-slate-500">Vendor</p>
-                      <p className="text-slate-200">{expandedDetail.vendor_name}</p>
+                      <p className="text-xs text-gray-500 dark:text-slate-500">Vendor</p>
+                      <p className="text-gray-800 dark:text-slate-200">{expandedDetail.vendor_name}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-slate-500">RFQ</p>
-                      <p className="text-slate-200 truncate">{expandedDetail.rfq_title || '—'}</p>
+                      <p className="text-xs text-gray-500 dark:text-slate-500">RFQ</p>
+                      <p className="text-gray-800 dark:text-slate-200 truncate">{expandedDetail.rfq_title || '—'}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-slate-500">Delivery Date</p>
-                      <p className="text-slate-200">{fmtDate(expandedDetail.delivery_date)}</p>
+                      <p className="text-xs text-gray-500 dark:text-slate-500">Delivery Date</p>
+                      <p className="text-gray-800 dark:text-slate-200">{fmtDate(expandedDetail.delivery_date)}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-slate-500">Total Amount</p>
-                      <p className="text-white font-semibold">{fmt(expandedDetail.total_amount)}</p>
+                      <p className="text-xs text-gray-500 dark:text-slate-500">Total Amount</p>
+                      <p className="text-gray-900 dark:text-white font-semibold">{fmt(expandedDetail.total_amount)}</p>
                     </div>
                     {expandedDetail.gst_number && (
                       <div>
-                        <p className="text-xs text-slate-500">GST</p>
-                        <p className="text-slate-400 font-mono text-xs">{expandedDetail.gst_number}</p>
+                        <p className="text-xs text-gray-500 dark:text-slate-500">GST</p>
+                        <p className="text-gray-500 dark:text-slate-400 font-mono text-xs">{expandedDetail.gst_number}</p>
                       </div>
                     )}
                     {expandedDetail.vendor_email && (
                       <div>
-                        <p className="text-xs text-slate-500">Vendor Email</p>
-                        <p className="text-slate-400 text-xs">{expandedDetail.vendor_email}</p>
+                        <p className="text-xs text-gray-500 dark:text-slate-500">Vendor Email</p>
+                        <p className="text-gray-500 dark:text-slate-400 text-xs">{expandedDetail.vendor_email}</p>
                       </div>
                     )}
                   </div>
@@ -180,7 +180,6 @@ export default function PurchaseOrders({ user, addToast, setActiveView }) {
         </div>
       )}
 
-      {/* Create PO Modal */}
       {showCreate && (
         <Modal
           title="Create Purchase Order"
@@ -193,17 +192,17 @@ export default function PurchaseOrders({ user, addToast, setActiveView }) {
           <div className="space-y-4">
             {acceptedQuotations.length === 0 ? (
               <div className="text-center py-6">
-                <p className="text-slate-400 text-sm">No accepted quotations available.</p>
-                <p className="text-slate-500 text-xs mt-1">Accept a quotation from the Quotations page first.</p>
+                <p className="text-gray-500 dark:text-slate-400 text-sm">No accepted quotations available.</p>
+                <p className="text-gray-400 dark:text-slate-500 text-xs mt-1">Accept a quotation from the Quotations page first.</p>
               </div>
             ) : (
               <>
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">Select Accepted Quotation *</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">Select Accepted Quotation *</label>
                   <select
                     value={form.quotation_id}
                     onChange={e => setForm(f => ({ ...f, quotation_id: e.target.value }))}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-indigo-500"
                   >
                     {acceptedQuotations.map(q => (
                       <option key={q.id} value={q.id}>
