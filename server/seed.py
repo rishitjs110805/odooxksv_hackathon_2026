@@ -10,8 +10,8 @@ load_dotenv()
 from src.db import get_pool
 
 
-async def main():
-    pool = await get_pool()
+async def seed_database(pool):
+    """Seed the database with demo data. Can be called from main.py auto-seed or run standalone."""
     async with pool.acquire() as conn:
         # ── Clean slate (order matters due to FK constraints) ──
         await conn.execute("DELETE FROM activity_logs")
@@ -227,13 +227,19 @@ async def main():
             )
         print("✓ 9 activity logs created")
 
-    await pool.close()
-    print("\n✅ Database seeded successfully!")
-    print("\nLogin credentials (all passwords: password123):")
+    print("Database seeded successfully!")
+    print("Login credentials (all passwords: password123):")
     print("  admin@vendorbridge.com  (Admin)")
     print("  savya@vendorbridge.com  (Manager)")
     print("  priya@vendorbridge.com  (Procurement Officer)")
     print("  vendor1@supplytec.com   (Vendor - Raj Electronics)")
 
 
-asyncio.run(main())
+async def main():
+    pool = await get_pool()
+    await seed_database(pool)
+    await pool.close()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
