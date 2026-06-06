@@ -37,7 +37,7 @@ async def get_notifications(user: dict = Depends(get_current_user)):
                     "nav": "approvals",
                 })
 
-        if role in ("admin", "procurement_officer"):
+        if role in ("admin", "procurement_officer", "manager"):
             rows = await conn.fetch("""
                 SELECT q.id, q.created_at, v.name as vendor_name, r.title as rfq_title, q.total_amount
                 FROM quotations q
