@@ -18,7 +18,7 @@ class ApprovalActionBody(BaseModel):
 
 
 @router.post("")
-async def create_approval(body: ApprovalBody, user: dict = Depends(require_roles("admin", "procurement_officer"))):
+async def create_approval(body: ApprovalBody, user: dict = Depends(require_roles("admin", "procurement_officer", "manager"))):
     pool = await get_pool()
     async with pool.acquire() as conn:
         q = await conn.fetchrow("SELECT * FROM quotations WHERE id=$1", body.quotation_id)

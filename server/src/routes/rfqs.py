@@ -53,7 +53,7 @@ async def list_rfqs(
 
 
 @router.post("")
-async def create_rfq(body: RFQBody, user: dict = Depends(require_roles("admin", "procurement_officer"))):
+async def create_rfq(body: RFQBody, user: dict = Depends(require_roles("admin", "procurement_officer", "manager"))):
     if body.status not in ("draft", "open"):
         raise HTTPException(400, "Status must be 'draft' or 'open'")
     pool = await get_pool()
@@ -94,7 +94,7 @@ async def get_rfq(rfq_id: int, user: dict = Depends(get_current_user)):
 
 
 @router.patch("/{rfq_id}/status")
-async def update_rfq_status(rfq_id: int, status: str, user: dict = Depends(require_roles("admin", "procurement_officer"))):
+async def update_rfq_status(rfq_id: int, status: str, user: dict = Depends(require_roles("admin", "procurement_officer", "manager"))):
     if status not in ("draft", "open", "closed", "cancelled"):
         raise HTTPException(400, "Invalid status")
     pool = await get_pool()
@@ -107,7 +107,7 @@ async def update_rfq_status(rfq_id: int, status: str, user: dict = Depends(requi
 
 
 @router.delete("/{rfq_id}")
-async def delete_rfq(rfq_id: int, user: dict = Depends(require_roles("admin", "procurement_officer"))):
+async def delete_rfq(rfq_id: int, user: dict = Depends(require_roles("admin", "procurement_officer", "manager"))):
     pool = await get_pool()
     async with pool.acquire() as conn:
         deleted = await conn.fetchval("DELETE FROM rfqs WHERE id=$1 RETURNING id", rfq_id)
